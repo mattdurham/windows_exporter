@@ -79,7 +79,7 @@ func Int(name string, help string, defaultValue string) *int {
 func isExecutable() bool {
 	// If this is running as a separate executable instead of a library then return kingpin
 	// TODO would love a better check here
-	return strings.Contains(os.Args[0],"exporter")
+	return strings.Contains(os.Args[0],"windows_exporter")
 }
 
 
@@ -88,6 +88,21 @@ func LoadConfig(configYaml string) {
 	for flagName, flagValue := range values {
 		if value, exist := flagStringMap[flagName]; exist {
 			*value = flagValue
+		}
+	}
+	for flagName, flagValue := range values {
+		if value, exist := flagIntMap[flagName]; exist {
+			*value,_ = strconv.Atoi(flagValue)
+		}
+	}
+	for flagName, flagValue := range values {
+		if value, exist := flagBoolMap[flagName]; exist {
+			*value,_ = strconv.ParseBool(flagValue)
+		}
+	}
+	for flagName, flagValue := range values {
+		if value, exist := flagFloatMap[flagName]; exist {
+			*value,_ = strconv.ParseFloat(flagValue, 64)
 		}
 	}
 }
