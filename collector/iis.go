@@ -16,7 +16,7 @@ import (
 )
 
 func init() {
-	registerCollector("iis", NewIISCollector)
+	registerCollector("iis", NewIISCollector, nil)
 }
 
 type simple_version struct {
@@ -192,7 +192,7 @@ type IISCollector struct {
 }
 
 // NewIISCollector ...
-func NewIISCollector() (Collector, error) {
+func NewIISCollector(interface{}) (Collector, error) {
 	const subsystem = "iis"
 
 	buildIIS := &IISCollector{

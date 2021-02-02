@@ -8,7 +8,7 @@ import (
 )
 
 func init() {
-	registerCollector("system", NewSystemCollector, "System")
+	registerCollector("system", NewSystemCollector,nil, "System")
 }
 
 // A SystemCollector is a Prometheus collector for WMI metrics
@@ -22,7 +22,7 @@ type SystemCollector struct {
 }
 
 // NewSystemCollector ...
-func NewSystemCollector() (Collector, error) {
+func NewSystemCollector(interface{}) (Collector, error) {
 	const subsystem = "system"
 
 	return &SystemCollector{

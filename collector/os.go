@@ -12,7 +12,7 @@ import (
 )
 
 func init() {
-	registerCollector("os", NewOSCollector)
+	registerCollector("os", NewOSCollector, nil)
 }
 
 // A OSCollector is a Prometheus collector for WMI metrics
@@ -33,7 +33,7 @@ type OSCollector struct {
 }
 
 // NewOSCollector ...
-func NewOSCollector() (Collector, error) {
+func NewOSCollector(interface{}) (Collector, error) {
 	const subsystem = "os"
 
 	return &OSCollector{

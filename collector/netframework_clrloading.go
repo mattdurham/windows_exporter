@@ -9,7 +9,7 @@ import (
 )
 
 func init() {
-	registerCollector("netframework_clrloading", NewNETFramework_NETCLRLoadingCollector)
+	registerCollector("netframework_clrloading", NewNETFramework_NETCLRLoadingCollector, nil)
 }
 
 // A NETFramework_NETCLRLoadingCollector is a Prometheus collector for WMI Win32_PerfRawData_NETFramework_NETCLRLoading metrics
@@ -26,7 +26,7 @@ type NETFramework_NETCLRLoadingCollector struct {
 }
 
 // NewNETFramework_NETCLRLoadingCollector ...
-func NewNETFramework_NETCLRLoadingCollector() (Collector, error) {
+func NewNETFramework_NETCLRLoadingCollector(interface{}) (Collector, error) {
 	const subsystem = "netframework_clrloading"
 	return &NETFramework_NETCLRLoadingCollector{
 		BytesinLoaderHeap: prometheus.NewDesc(

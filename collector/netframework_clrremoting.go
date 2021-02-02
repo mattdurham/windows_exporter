@@ -9,7 +9,7 @@ import (
 )
 
 func init() {
-	registerCollector("netframework_clrremoting", NewNETFramework_NETCLRRemotingCollector)
+	registerCollector("netframework_clrremoting", NewNETFramework_NETCLRRemotingCollector, nil)
 }
 
 // A NETFramework_NETCLRRemotingCollector is a Prometheus collector for WMI Win32_PerfRawData_NETFramework_NETCLRRemoting metrics
@@ -23,7 +23,7 @@ type NETFramework_NETCLRRemotingCollector struct {
 }
 
 // NewNETFramework_NETCLRRemotingCollector ...
-func NewNETFramework_NETCLRRemotingCollector() (Collector, error) {
+func NewNETFramework_NETCLRRemotingCollector(interface{}) (Collector, error) {
 	const subsystem = "netframework_clrremoting"
 	return &NETFramework_NETCLRRemotingCollector{
 		Channels: prometheus.NewDesc(

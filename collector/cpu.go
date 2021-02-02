@@ -16,7 +16,7 @@ func init() {
 	} else {
 		deps = "Processor"
 	}
-	registerCollector("cpu", newCPUCollector, deps)
+	registerCollector("cpu", newCPUCollector,nil, deps)
 }
 
 type cpuCollectorBasic struct {
@@ -39,7 +39,7 @@ type cpuCollectorFull struct {
 }
 
 // newCPUCollector constructs a new cpuCollector, appropriate for the running OS
-func newCPUCollector() (Collector, error) {
+func newCPUCollector(interface{}) (Collector, error) {
 	const subsystem = "cpu"
 
 	version := getWindowsVersion()

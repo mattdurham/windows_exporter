@@ -7,7 +7,7 @@ import (
 )
 
 func init() {
-	registerCollector("thermalzone", NewThermalZoneCollector)
+	registerCollector("thermalzone", NewThermalZoneCollector, nil)
 }
 
 // A thermalZoneCollector is a Prometheus collector for WMI Win32_PerfRawData_Counters_ThermalZoneInformation metrics
@@ -18,7 +18,7 @@ type thermalZoneCollector struct {
 }
 
 // NewThermalZoneCollector ...
-func NewThermalZoneCollector() (Collector, error) {
+func NewThermalZoneCollector(interface{}) (Collector, error) {
 	const subsystem = "thermalzone"
 	return &thermalZoneCollector{
 		Temperature: prometheus.NewDesc(

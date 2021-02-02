@@ -9,7 +9,7 @@ import (
 )
 
 func init() {
-	registerCollector("netframework_clrexceptions", NewNETFramework_NETCLRExceptionsCollector)
+	registerCollector("netframework_clrexceptions", NewNETFramework_NETCLRExceptionsCollector, nil)
 }
 
 // A NETFramework_NETCLRExceptionsCollector is a Prometheus collector for WMI Win32_PerfRawData_NETFramework_NETCLRExceptions metrics
@@ -21,7 +21,7 @@ type NETFramework_NETCLRExceptionsCollector struct {
 }
 
 // NewNETFramework_NETCLRExceptionsCollector ...
-func NewNETFramework_NETCLRExceptionsCollector() (Collector, error) {
+func NewNETFramework_NETCLRExceptionsCollector(interface{}) (Collector, error) {
 	const subsystem = "netframework_clrexceptions"
 	return &NETFramework_NETCLRExceptionsCollector{
 		NumberofExcepsThrown: prometheus.NewDesc(

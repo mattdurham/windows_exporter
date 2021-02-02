@@ -8,17 +8,8 @@ import (
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
-var dfsrEnabledCollectors = kingpin.Flag("collectors.dfsr.sources-enabled", "Comma-seperated list of DFSR Perflib sources to use.").Default("connection,folder,volume").String()
-
 func init() {
-	log.Info("dfsr collector is in an experimental state! Metrics for this collector have not been tested.")
-	// Perflib sources are dynamic, depending on the enabled child collectors
-	var perflibDependencies []string
-	for _, source := range expandEnabledChildCollectors(*dfsrEnabledCollectors) {
-		perflibDependencies = append(perflibDependencies, dfsrGetPerfObjectName(source))
-	}
-
-	registerCollector("dfsr", NewDFSRCollector, perflibDependencies...)
+	registerCollector("dfsr", NewDFSRCollector, buildDfrsFlags)
 }
 
 // DFSRCollector contains the metric and state data of the DFSR collectors.
@@ -78,7 +69,12 @@ type DFSRCollector struct {
 	dfsrChildCollectors []dfsrCollectorFunc
 }
 
+
 type dfsrCollectorFunc func(ctx *ScrapeContext, ch chan<- prometheus.Metric) error
+
+type dfrsConfig struct {
+	dfsrEnabledCollectors *string
+}
 
 // Map Perflib sources to DFSR collector names
 // E.G. volume -> DFS Replication Service Volumes
@@ -96,11 +92,25 @@ func dfsrGetPerfObjectName(collector string) string {
 	return (prefix + suffix)
 }
 
+func buildDfrsFlags(kingpinApp kingpin.Application) interface{} {
+	config := new(dfrsConfig)
+	config.dfsrEnabledCollectors = kingpinApp.Flag("collectors.dfsr.sources-enabled", "Comma-seperated list of DFSR Perflib sources to use.").Default("connection,folder,volume").String()
+	return config
+}
+
 // NewDFSRCollector is registered
-func NewDFSRCollector() (Collector, error) {
+func NewDFSRCollector(config interface{}) (Collector, error) {
+
+	dfrsConfig := config.(dfrsConfig)
+	log.Info("dfsr collector is in an experimental state! Metrics for this collector have not been tested.")
+	// Perflib sources are dynamic, depending on the enabled child collectors
+	var perflibDependencies []string
+	for _, source := range expandEnabledChildCollectors(*dfrsConfig.dfsrEnabledCollectors) {
+		perflibDependencies = append(perflibDependencies, dfsrGetPerfObjectName(source))
+	}
 	const subsystem = "dfsr"
 
-	enabled := expandEnabledChildCollectors(*dfsrEnabledCollectors)
+	enabled := expandEnabledChildCollectors(*dfrsConfig.dfsrEnabledCollectors)
 	perfCounters := make([]string, 0, len(enabled))
 	for _, c := range enabled {
 		perfCounters = append(perfCounters, dfsrGetPerfObjectName(c))

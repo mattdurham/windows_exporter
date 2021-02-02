@@ -10,7 +10,7 @@ import (
 )
 
 func init() {
-	registerCollector("time", newTimeCollector, "Windows Time Service")
+	registerCollector("time", newTimeCollector,nil, "Windows Time Service")
 }
 
 // TimeCollector is a Prometheus collector for Perflib counter metrics
@@ -23,7 +23,7 @@ type TimeCollector struct {
 	NTPServerOutgoingResponsesTotal  *prometheus.Desc
 }
 
-func newTimeCollector() (Collector, error) {
+func newTimeCollector(interface{}) (Collector, error) {
 	if getWindowsVersion() <= 6.1 {
 		return nil, errors.New("Windows version older than Server 2016 detected. The time collector will not run and should be disabled via CLI flags or configuration file")
 

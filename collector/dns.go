@@ -4,14 +4,13 @@ package collector
 
 import (
 	"errors"
-
 	"github.com/StackExchange/wmi"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
 )
 
 func init() {
-	registerCollector("dns", NewDNSCollector)
+	registerCollector("dns", NewDNSCollector, nil)
 }
 
 // A DNSCollector is a Prometheus collector for WMI Win32_PerfRawData_DNS_DNS metrics
@@ -41,7 +40,7 @@ type DNSCollector struct {
 }
 
 // NewDNSCollector ...
-func NewDNSCollector() (Collector, error) {
+func NewDNSCollector(interface{}) (Collector, error) {
 	const subsystem = "dns"
 	return &DNSCollector{
 		ZoneTransferRequestsReceived: prometheus.NewDesc(

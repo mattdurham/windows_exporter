@@ -13,7 +13,7 @@ import (
 )
 
 func init() {
-	registerCollector("exchange", newExchangeCollector,
+	registerCollector("exchange", newExchangeCollector,nil,
 		"MSExchange ADAccess Processes",
 		"MSExchangeTransport Queues",
 		"MSExchange HttpProxy",
@@ -94,7 +94,7 @@ var (
 )
 
 // newExchangeCollector returns a new Collector
-func newExchangeCollector() (Collector, error) {
+func newExchangeCollector(interface{}) (Collector, error) {
 
 	// desc creates a new prometheus description
 	desc := func(metricName string, description string, labels ...string) *prometheus.Desc {

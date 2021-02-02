@@ -13,7 +13,7 @@ import (
 )
 
 func init() {
-	registerCollector("service", NewserviceCollector)
+	registerCollector("service", NewserviceCollector, nil)
 }
 
 var (
@@ -34,7 +34,7 @@ type serviceCollector struct {
 }
 
 // NewserviceCollector ...
-func NewserviceCollector() (Collector, error) {
+func NewserviceCollector(interface{}) (Collector, error) {
 	const subsystem = "service"
 
 	if *serviceWhereClause == "" {

@@ -54,12 +54,12 @@ type textFileCollector struct {
 }
 
 func init() {
-	registerCollector("textfile", NewTextFileCollector)
+	registerCollector("textfile", NewTextFileCollector, nil)
 }
 
 // NewTextFileCollector returns a new Collector exposing metrics read from files
 // in the given textfile directory.
-func NewTextFileCollector() (Collector, error) {
+func NewTextFileCollector(interface{}) (Collector, error) {
 	return &textFileCollector{
 		path: *textFileDirectory,
 	}, nil

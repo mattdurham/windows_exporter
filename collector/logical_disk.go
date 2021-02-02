@@ -12,19 +12,9 @@ import (
 )
 
 func init() {
-	registerCollector("logical_disk", NewLogicalDiskCollector, "LogicalDisk")
+	registerCollector("logical_disk", NewLogicalDiskCollector, buildFlags,"LogicalDisk")
 }
 
-var (
-	volumeWhitelist = kingpin.Flag(
-		"collector.logical_disk.volume-whitelist",
-		"Regexp of volumes to whitelist. Volume name must both match whitelist and not match blacklist to be included.",
-	).Default(".+").String()
-	volumeBlacklist = kingpin.Flag(
-		"collector.logical_disk.volume-blacklist",
-		"Regexp of volumes to blacklist. Volume name must both match whitelist and not match blacklist to be included.",
-	).Default("").String()
-)
 
 // A LogicalDiskCollector is a Prometheus collector for perflib logicalDisk metrics
 type LogicalDiskCollector struct {
@@ -47,8 +37,29 @@ type LogicalDiskCollector struct {
 	volumeBlacklistPattern *regexp.Regexp
 }
 
+type logicalDiskCollectorConfig struct {
+	VolumeWhiteList *string
+	VolumeBlackList *string
+}
+
+func buildFlags(kingpinApp kingpin.Application) interface{} {
+	config := new(logicalDiskCollectorConfig)
+	config.VolumeWhiteList = kingpinApp.Flag(
+		"collector.logical_disk.volume-whitelist",
+		"Regexp of volumes to whitelist. Volume name must both match whitelist and not match blacklist to be included.",
+	).Default(".+").String()
+	config.VolumeBlackList = kingpinApp.Flag(
+		"collector.logical_disk.volume-blacklist",
+		"Regexp of volumes to blacklist. Volume name must both match whitelist and not match blacklist to be included.",
+	).Default("").String()
+	return config
+
+}
+
 // NewLogicalDiskCollector ...
-func NewLogicalDiskCollector() (Collector, error) {
+func NewLogicalDiskCollector(config interface{}) (Collector, error) {
+
+	logicalConfig := config.(logicalDiskCollectorConfig)
 	const subsystem = "logical_disk"
 
 	return &LogicalDiskCollector{
@@ -150,8 +161,8 @@ func NewLogicalDiskCollector() (Collector, error) {
 			nil,
 		),
 
-		volumeWhitelistPattern: regexp.MustCompile(fmt.Sprintf("^(?:%s)$", *volumeWhitelist)),
-		volumeBlacklistPattern: regexp.MustCompile(fmt.Sprintf("^(?:%s)$", *volumeBlacklist)),
+		volumeWhitelistPattern: regexp.MustCompile(fmt.Sprintf("^(?:%s)$", *logicalConfig.VolumeWhiteList)),
+		volumeBlacklistPattern: regexp.MustCompile(fmt.Sprintf("^(?:%s)$", *logicalConfig.VolumeBlackList)),
 	}, nil
 }
 

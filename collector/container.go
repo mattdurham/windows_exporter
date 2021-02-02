@@ -9,7 +9,7 @@ import (
 )
 
 func init() {
-	registerCollector("container", NewContainerMetricsCollector)
+	registerCollector("container", NewContainerMetricsCollector, nil)
 }
 
 // A ContainerMetricsCollector is a Prometheus collector for containers metrics
@@ -39,7 +39,7 @@ type ContainerMetricsCollector struct {
 }
 
 // NewContainerMetricsCollector constructs a new ContainerMetricsCollector
-func NewContainerMetricsCollector() (Collector, error) {
+func NewContainerMetricsCollector(interface{}) (Collector, error) {
 	const subsystem = "container"
 	return &ContainerMetricsCollector{
 		ContainerAvailable: prometheus.NewDesc(

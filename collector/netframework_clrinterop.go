@@ -9,7 +9,7 @@ import (
 )
 
 func init() {
-	registerCollector("netframework_clrinterop", NewNETFramework_NETCLRInteropCollector)
+	registerCollector("netframework_clrinterop", NewNETFramework_NETCLRInteropCollector, nil)
 }
 
 // A NETFramework_NETCLRInteropCollector is a Prometheus collector for WMI Win32_PerfRawData_NETFramework_NETCLRInterop metrics
@@ -20,7 +20,7 @@ type NETFramework_NETCLRInteropCollector struct {
 }
 
 // NewNETFramework_NETCLRInteropCollector ...
-func NewNETFramework_NETCLRInteropCollector() (Collector, error) {
+func NewNETFramework_NETCLRInteropCollector(interface{}) (Collector, error) {
 	const subsystem = "netframework_clrinterop"
 	return &NETFramework_NETCLRInteropCollector{
 		NumberofCCWs: prometheus.NewDesc(

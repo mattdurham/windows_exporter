@@ -126,7 +126,7 @@ func mssqlGetPerfObjectName(sqlInstance string, collector string) string {
 }
 
 func init() {
-	registerCollector("mssql", NewMSSQLCollector)
+	registerCollector("mssql", NewMSSQLCollector, nil)
 }
 
 // A MSSQLCollector is a Prometheus collector for various WMI Win32_PerfRawData_MSSQLSERVER_* metrics
@@ -388,7 +388,7 @@ type MSSQLCollector struct {
 }
 
 // NewMSSQLCollector ...
-func NewMSSQLCollector() (Collector, error) {
+func NewMSSQLCollector(interface{}) (Collector, error) {
 
 	const subsystem = "mssql"
 

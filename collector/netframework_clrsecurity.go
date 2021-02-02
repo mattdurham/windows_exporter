@@ -9,7 +9,7 @@ import (
 )
 
 func init() {
-	registerCollector("netframework_clrsecurity", NewNETFramework_NETCLRSecurityCollector)
+	registerCollector("netframework_clrsecurity", NewNETFramework_NETCLRSecurityCollector, nil)
 }
 
 // A NETFramework_NETCLRSecurityCollector is a Prometheus collector for WMI Win32_PerfRawData_NETFramework_NETCLRSecurity metrics
@@ -21,7 +21,7 @@ type NETFramework_NETCLRSecurityCollector struct {
 }
 
 // NewNETFramework_NETCLRSecurityCollector ...
-func NewNETFramework_NETCLRSecurityCollector() (Collector, error) {
+func NewNETFramework_NETCLRSecurityCollector(interface{}) (Collector, error) {
 	const subsystem = "netframework_clrsecurity"
 	return &NETFramework_NETCLRSecurityCollector{
 		NumberLinkTimeChecks: prometheus.NewDesc(

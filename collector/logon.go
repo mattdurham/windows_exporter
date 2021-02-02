@@ -4,14 +4,13 @@ package collector
 
 import (
 	"errors"
-
 	"github.com/StackExchange/wmi"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
 )
 
 func init() {
-	registerCollector("logon", NewLogonCollector)
+	registerCollector("logon", NewLogonCollector, nil)
 }
 
 // A LogonCollector is a Prometheus collector for WMI metrics
@@ -20,7 +19,7 @@ type LogonCollector struct {
 }
 
 // NewLogonCollector ...
-func NewLogonCollector() (Collector, error) {
+func NewLogonCollector(interface{}) (Collector, error) {
 	const subsystem = "logon"
 
 	return &LogonCollector{

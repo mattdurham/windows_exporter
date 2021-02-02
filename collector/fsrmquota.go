@@ -7,7 +7,7 @@ import (
 )
 
 func init() {
-	registerCollector("fsrmquota", newFSRMQuotaCollector)
+	registerCollector("fsrmquota", newFSRMQuotaCollector, nil)
 }
 
 type FSRMQuotaCollector struct {
@@ -24,7 +24,7 @@ type FSRMQuotaCollector struct {
 	Template        *prometheus.Desc
 }
 
-func newFSRMQuotaCollector() (Collector, error) {
+func newFSRMQuotaCollector(interface{}) (Collector, error) {
 	const subsystem = "fsrmquota"
 	return &FSRMQuotaCollector{
 		QuotasCount: prometheus.NewDesc(

@@ -50,44 +50,84 @@ func getWindowsVersion() float64 {
 	return currentv_flt
 }
 
-type collectorBuilder func() (Collector, error)
+type collectorBuilder func(config interface{}) (Collector, error)
 
-var (
-	builders                = make(map[string]collectorBuilder)
-	perfCounterDependencies = make(map[string]string)
-)
+type registerFlags func() interface{}
 
-func registerCollector(name string, builder collectorBuilder, perfCounterNames ...string) {
-	builders[name] = builder
-	addPerfCounterDependencies(name, perfCounterNames)
+type registerFlagsForLibrary func(map[string]string) interface{}
+
+type Set struct {
+	builders                 map[string]collectorBuilder
+	perfCounterDependencies  map[string]string
+	flagBuilders             map[string]registerFlags
+	libraryFlagBuilds        map[string]registerFlagsForLibrary
 }
 
-func addPerfCounterDependencies(name string, perfCounterNames []string) {
+func NewSet() *Set {
+	set := new(Set)
+	set.builders = map[string]collectorBuilder{}
+	set.perfCounterDependencies = map[string]string{}
+	set.flagBuilders = map[string]registerFlags{}
+	set.libraryFlagBuilds = map[string]registerFlagsForLibrary{}
+	return set
+}
+
+func registerCollector(name string, builder collectorBuilder, flagBuilder registerFlags, perfCounterNames ...string) {
+	cs.builders[name] = builder
+	if flagBuilder != nil {
+		cs.flagBuilders[name] = flagBuilder
+	}
+	cs.addPerfCounterDependencies(name, perfCounterNames)
+}
+
+func (cs *Set) addPerfCounterDependencies(name string, perfCounterNames []string) {
 	perfIndicies := make([]string, 0, len(perfCounterNames))
 	for _, cn := range perfCounterNames {
 		perfIndicies = append(perfIndicies, MapCounterToIndex(cn))
 	}
-	perfCounterDependencies[name] = strings.Join(perfIndicies, " ")
+	cs.perfCounterDependencies[name] = strings.Join(perfIndicies, " ")
 }
 
-func Available() []string {
-	cs := make([]string, 0, len(builders))
-	for c := range builders {
-		cs = append(cs, c)
+func (cs *Set) Available() []string {
+	available := make([]string, 0, len(cs.builders))
+	for c := range cs.builders {
+		available = append(available, c)
 	}
-	return cs
+	return available
 }
-func Build(collector string) (Collector, error) {
-	builder, exists := builders[collector]
+func (cs *Set) Build(collector string) (Collector, error) {
+	builder, exists := cs.builders[collector]
+	flagBuilder, _ := cs.flagBuilders[collector]
 	if !exists {
 		return nil, fmt.Errorf("Unknown collector %q", collector)
 	}
-	return builder()
+
+	if flagBuilder != nil {
+		config := flagBuilder()
+		return builder(config)
+	}
+	return builder(nil)
 }
-func getPerfQuery(collectors []string) string {
+
+
+func  (cs *Set) BuildForLibrary(collector string, config map[string]string ) (Collector, error) {
+	builder, exists := cs.builders[collector]
+	flagBuilder, _ := cs.libraryFlagBuilds[collector]
+	if !exists {
+		return nil, fmt.Errorf("Unknown collector %q", collector)
+	}
+
+	if flagBuilder != nil {
+		config := flagBuilder(config)
+		return builder(config)
+	}
+	return builder(nil)
+}
+
+func (cs *Set) getPerfQuery(collectors []string) string {
 	parts := make([]string, 0, len(collectors))
 	for _, c := range collectors {
-		if p := perfCounterDependencies[c]; p != "" {
+		if p := cs.perfCounterDependencies[c]; p != "" {
 			parts = append(parts, p)
 		}
 	}
@@ -105,8 +145,8 @@ type ScrapeContext struct {
 }
 
 // PrepareScrapeContext creates a ScrapeContext to be used during a single scrape
-func PrepareScrapeContext(collectors []string) (*ScrapeContext, error) {
-	q := getPerfQuery(collectors) // TODO: Memoize
+func (cs *Set) PrepareScrapeContext(collectors []string) (*ScrapeContext, error) {
+	q := cs.getPerfQuery(collectors) // TODO: Memoize
 	objs, err := getPerflibSnapshot(q)
 	if err != nil {
 		return nil, err

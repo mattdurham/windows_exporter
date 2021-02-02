@@ -4,14 +4,13 @@ package collector
 
 import (
 	"errors"
-
 	"github.com/StackExchange/wmi"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
 )
 
 func init() {
-	registerCollector("cs", NewCSCollector)
+	registerCollector("cs", NewCSCollector, nil)
 }
 
 // A CSCollector is a Prometheus collector for WMI metrics
@@ -22,7 +21,7 @@ type CSCollector struct {
 }
 
 // NewCSCollector ...
-func NewCSCollector() (Collector, error) {
+func NewCSCollector(interface{}) (Collector, error) {
 	const subsystem = "cs"
 
 	return &CSCollector{

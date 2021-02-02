@@ -10,7 +10,7 @@ import (
 )
 
 func init() {
-	registerCollector("remote_fx", NewRemoteFx, "RemoteFX Network", "RemoteFX Graphics")
+	registerCollector("remote_fx", NewRemoteFx,nil, "RemoteFX Network", "RemoteFX Graphics")
 }
 
 // A RemoteFxNetworkCollector is a Prometheus collector for
@@ -42,7 +42,7 @@ type RemoteFxCollector struct {
 }
 
 // NewRemoteFx ...
-func NewRemoteFx() (Collector, error) {
+func NewRemoteFx(interface{}) (Collector, error) {
 	const subsystem = "remote_fx"
 	return &RemoteFxCollector{
 		// net

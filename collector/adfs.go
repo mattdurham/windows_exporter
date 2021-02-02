@@ -7,7 +7,7 @@ import (
 )
 
 func init() {
-	registerCollector("adfs", newADFSCollector, "AD FS")
+	registerCollector("adfs", newADFSCollector, nil,"AD FS")
 }
 
 type adfsCollector struct {
@@ -25,7 +25,7 @@ type adfsCollector struct {
 }
 
 // newADFSCollector constructs a new adfsCollector
-func newADFSCollector() (Collector, error) {
+func newADFSCollector(interface{}) (Collector, error) {
 	const subsystem = "adfs"
 
 	return &adfsCollector{

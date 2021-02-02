@@ -11,7 +11,7 @@ import (
 )
 
 func init() {
-	registerCollector("hyperv", NewHyperVCollector)
+	registerCollector("hyperv", NewHyperVCollector, nil)
 }
 
 // HyperVCollector is a Prometheus collector for hyper-v
@@ -113,7 +113,7 @@ type HyperVCollector struct {
 }
 
 // NewHyperVCollector ...
-func NewHyperVCollector() (Collector, error) {
+func NewHyperVCollector(interface{}) (Collector, error) {
 	buildSubsystemName := func(component string) string { return "hyperv_" + component }
 	return &HyperVCollector{
 		HealthCritical: prometheus.NewDesc(
