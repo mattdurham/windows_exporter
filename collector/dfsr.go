@@ -76,7 +76,7 @@ func (c *DFSRCollector) BuildFlags(application kingpin.Application) {
 }
 
 func (c *DFSRCollector) BuildFlagsForLibrary(m map[string]string) {
-	if dfrs, found := m["collectors.dfsr.sources-enabled"]; found {
+	if dfrs, found := m["collectors.dfsr.sources-enabled"]; found == false {
 		dfrs = "connection,folder,volume"
 	} else {
 		c.dfsrEnabledCollectors = &dfrs
