@@ -87,7 +87,7 @@ func (c *exchangeCollector) BuildFlagsForLibrary(m map[string]string) {
 	_, exists := m["collectors.exchange.list"]
 	c.argExchangeListAllCollectors = &exists
 
-	if argExchangeCollectorsEnabled, exists := m["collectors.exchange.list"]; exists {
+	if argExchangeCollectorsEnabled, exists := m["collectors.exchange.enabled"]; exists  == false {
 		argExchangeCollectorsEnabled = ""
 		c.argExchangeCollectorsEnabled = &argExchangeCollectorsEnabled
 	} else {
