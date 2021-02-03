@@ -6,10 +6,11 @@ import (
 	"github.com/StackExchange/wmi"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 func init() {
-	registerCollector("netframework_clrloading", NewNETFramework_NETCLRLoadingCollector, nil)
+	registerCollector("netframework_clrloading", NewNETFramework_NETCLRLoadingCollector)
 }
 
 // A NETFramework_NETCLRLoadingCollector is a Prometheus collector for WMI Win32_PerfRawData_NETFramework_NETCLRLoading metrics
@@ -25,8 +26,17 @@ type NETFramework_NETCLRLoadingCollector struct {
 	TotalNumberofLoadFailures *prometheus.Desc
 }
 
+func (c *NETFramework_NETCLRLoadingCollector) BuildFlags(application kingpin.Application) {
+}
+
+func (c *NETFramework_NETCLRLoadingCollector) BuildFlagsForLibrary(m map[string]string) {
+}
+
+func (c *NETFramework_NETCLRLoadingCollector) Setup() {
+}
+
 // NewNETFramework_NETCLRLoadingCollector ...
-func NewNETFramework_NETCLRLoadingCollector(interface{}) (Collector, error) {
+func NewNETFramework_NETCLRLoadingCollector() (Collector, error) {
 	const subsystem = "netframework_clrloading"
 	return &NETFramework_NETCLRLoadingCollector{
 		BytesinLoaderHeap: prometheus.NewDesc(

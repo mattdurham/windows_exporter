@@ -4,13 +4,14 @@ package collector
 
 import (
 	"errors"
+	"gopkg.in/alecthomas/kingpin.v2"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
 )
 
 func init() {
-	registerCollector("time", newTimeCollector,nil, "Windows Time Service")
+	registerCollector("time", newTimeCollector, "Windows Time Service")
 }
 
 // TimeCollector is a Prometheus collector for Perflib counter metrics
@@ -23,7 +24,16 @@ type TimeCollector struct {
 	NTPServerOutgoingResponsesTotal  *prometheus.Desc
 }
 
-func newTimeCollector(interface{}) (Collector, error) {
+func (c *TimeCollector) BuildFlags(application kingpin.Application) {
+}
+
+func (c *TimeCollector) BuildFlagsForLibrary(m map[string]string) {
+}
+
+func (c *TimeCollector) Setup() {
+}
+
+func newTimeCollector() (Collector, error) {
 	if getWindowsVersion() <= 6.1 {
 		return nil, errors.New("Windows version older than Server 2016 detected. The time collector will not run and should be disabled via CLI flags or configuration file")
 

@@ -6,10 +6,11 @@ import (
 	"github.com/Microsoft/hcsshim"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 func init() {
-	registerCollector("container", NewContainerMetricsCollector, nil)
+	registerCollector("container", NewContainerMetricsCollector)
 }
 
 // A ContainerMetricsCollector is a Prometheus collector for containers metrics
@@ -38,8 +39,19 @@ type ContainerMetricsCollector struct {
 	DroppedPacketsOutgoing *prometheus.Desc
 }
 
+func (c *ContainerMetricsCollector) Setup() {
+}
+
+func (c *ContainerMetricsCollector) BuildFlags(application kingpin.Application) {
+
+}
+
+func (c *ContainerMetricsCollector) BuildFlagsForLibrary(m map[string]string) {
+
+}
+
 // NewContainerMetricsCollector constructs a new ContainerMetricsCollector
-func NewContainerMetricsCollector(interface{}) (Collector, error) {
+func NewContainerMetricsCollector() (Collector, error) {
 	const subsystem = "container"
 	return &ContainerMetricsCollector{
 		ContainerAvailable: prometheus.NewDesc(

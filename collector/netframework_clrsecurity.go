@@ -6,10 +6,11 @@ import (
 	"github.com/StackExchange/wmi"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 func init() {
-	registerCollector("netframework_clrsecurity", NewNETFramework_NETCLRSecurityCollector, nil)
+	registerCollector("netframework_clrsecurity", NewNETFramework_NETCLRSecurityCollector)
 }
 
 // A NETFramework_NETCLRSecurityCollector is a Prometheus collector for WMI Win32_PerfRawData_NETFramework_NETCLRSecurity metrics
@@ -20,8 +21,17 @@ type NETFramework_NETCLRSecurityCollector struct {
 	TotalRuntimeChecks   *prometheus.Desc
 }
 
+func (c *NETFramework_NETCLRSecurityCollector) BuildFlags(application kingpin.Application) {
+}
+
+func (c *NETFramework_NETCLRSecurityCollector) BuildFlagsForLibrary(m map[string]string) {
+}
+
+func (c *NETFramework_NETCLRSecurityCollector) Setup() {
+}
+
 // NewNETFramework_NETCLRSecurityCollector ...
-func NewNETFramework_NETCLRSecurityCollector(interface{}) (Collector, error) {
+func NewNETFramework_NETCLRSecurityCollector() (Collector, error) {
 	const subsystem = "netframework_clrsecurity"
 	return &NETFramework_NETCLRSecurityCollector{
 		NumberLinkTimeChecks: prometheus.NewDesc(

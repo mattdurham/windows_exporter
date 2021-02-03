@@ -6,10 +6,11 @@ import (
 	"github.com/StackExchange/wmi"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 func init() {
-	registerCollector("netframework_clrinterop", NewNETFramework_NETCLRInteropCollector, nil)
+	registerCollector("netframework_clrinterop", NewNETFramework_NETCLRInteropCollector)
 }
 
 // A NETFramework_NETCLRInteropCollector is a Prometheus collector for WMI Win32_PerfRawData_NETFramework_NETCLRInterop metrics
@@ -19,8 +20,17 @@ type NETFramework_NETCLRInteropCollector struct {
 	NumberofStubs       *prometheus.Desc
 }
 
+func (c *NETFramework_NETCLRInteropCollector) BuildFlags(application kingpin.Application) {
+}
+
+func (c *NETFramework_NETCLRInteropCollector) BuildFlagsForLibrary(m map[string]string) {
+}
+
+func (c *NETFramework_NETCLRInteropCollector) Setup() {
+}
+
 // NewNETFramework_NETCLRInteropCollector ...
-func NewNETFramework_NETCLRInteropCollector(interface{}) (Collector, error) {
+func NewNETFramework_NETCLRInteropCollector() (Collector, error) {
 	const subsystem = "netframework_clrinterop"
 	return &NETFramework_NETCLRInteropCollector{
 		NumberofCCWs: prometheus.NewDesc(

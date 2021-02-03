@@ -12,7 +12,7 @@ import (
 )
 
 func init() {
-	registerCollector("msmq", NewMSMQCollector, nil)
+	registerCollector("msmq", NewMSMQCollector)
 }
 
 
@@ -26,8 +26,17 @@ type Win32_PerfRawData_MSMQ_MSMQQueueCollector struct {
 	queryWhereClause string
 }
 
+func (c *Win32_PerfRawData_MSMQ_MSMQQueueCollector) BuildFlags(application kingpin.Application) {
+}
+
+func (c *Win32_PerfRawData_MSMQ_MSMQQueueCollector) BuildFlagsForLibrary(m map[string]string) {
+}
+
+func (c *Win32_PerfRawData_MSMQ_MSMQQueueCollector) Setup() {
+}
+
 // NewWin32_PerfRawData_MSMQ_MSMQQueueCollector ...
-func NewMSMQCollector(interface{}) (Collector, error) {
+func NewMSMQCollector() (Collector, error) {
 	const subsystem = "msmq"
 	msmqWhereClause := kingpin.Flag("collector.msmq.msmq-where", "WQL 'where' clause to use in WMI metrics query. Limits the response to the msmqs you specify and reduces the size of the response.").String()
 	if *msmqWhereClause == "" {

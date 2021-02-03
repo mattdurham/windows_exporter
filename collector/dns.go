@@ -7,10 +7,11 @@ import (
 	"github.com/StackExchange/wmi"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 func init() {
-	registerCollector("dns", NewDNSCollector, nil)
+	registerCollector("dns", NewDNSCollector)
 }
 
 // A DNSCollector is a Prometheus collector for WMI Win32_PerfRawData_DNS_DNS metrics
@@ -39,8 +40,17 @@ type DNSCollector struct {
 	UnmatchedResponsesReceived    *prometheus.Desc
 }
 
+func (c *DNSCollector) BuildFlags(application kingpin.Application) {
+}
+
+func (c *DNSCollector) BuildFlagsForLibrary(m map[string]string) {
+}
+
+func (c *DNSCollector) Setup() {
+}
+
 // NewDNSCollector ...
-func NewDNSCollector(interface{}) (Collector, error) {
+func NewDNSCollector() (Collector, error) {
 	const subsystem = "dns"
 	return &DNSCollector{
 		ZoneTransferRequestsReceived: prometheus.NewDesc(

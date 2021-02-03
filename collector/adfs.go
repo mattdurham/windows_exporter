@@ -4,10 +4,11 @@ package collector
 
 import (
 	"github.com/prometheus/client_golang/prometheus"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 func init() {
-	registerCollector("adfs", newADFSCollector, nil,"AD FS")
+	registerCollector("adfs", newADFSCollector, "AD FS")
 }
 
 type adfsCollector struct {
@@ -24,8 +25,17 @@ type adfsCollector struct {
 	windowsIntegratedAuthentications *prometheus.Desc
 }
 
+func (c *adfsCollector) Setup() {
+}
+
+func (c *adfsCollector) BuildFlags(application kingpin.Application) {
+}
+
+func (c *adfsCollector) BuildFlagsForLibrary(m map[string]string) {
+}
+
 // newADFSCollector constructs a new adfsCollector
-func newADFSCollector(interface{}) (Collector, error) {
+func newADFSCollector() (Collector, error) {
 	const subsystem = "adfs"
 
 	return &adfsCollector{

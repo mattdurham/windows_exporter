@@ -4,10 +4,11 @@ import (
 	"github.com/StackExchange/wmi"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 func init() {
-	registerCollector("fsrmquota", newFSRMQuotaCollector, nil)
+	registerCollector("fsrmquota", newFSRMQuotaCollector)
 }
 
 type FSRMQuotaCollector struct {
@@ -24,7 +25,16 @@ type FSRMQuotaCollector struct {
 	Template        *prometheus.Desc
 }
 
-func newFSRMQuotaCollector(interface{}) (Collector, error) {
+func (c *FSRMQuotaCollector) BuildFlags(application kingpin.Application) {
+}
+
+func (c *FSRMQuotaCollector) BuildFlagsForLibrary(m map[string]string) {
+}
+
+func (c *FSRMQuotaCollector) Setup() {
+}
+
+func newFSRMQuotaCollector() (Collector, error) {
 	const subsystem = "fsrmquota"
 	return &FSRMQuotaCollector{
 		QuotasCount: prometheus.NewDesc(

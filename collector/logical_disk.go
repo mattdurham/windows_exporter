@@ -12,7 +12,7 @@ import (
 )
 
 func init() {
-	registerCollector("logical_disk", NewLogicalDiskCollector, buildFlags,"LogicalDisk")
+	registerCollector("logical_disk", NewLogicalDiskCollector, "LogicalDisk")
 }
 
 
@@ -35,31 +35,44 @@ type LogicalDiskCollector struct {
 
 	volumeWhitelistPattern *regexp.Regexp
 	volumeBlacklistPattern *regexp.Regexp
+
+	volumeWhiteList *string
+	volumeBlackList *string
 }
 
-type logicalDiskCollectorConfig struct {
-	VolumeWhiteList *string
-	VolumeBlackList *string
-}
-
-func buildFlags(kingpinApp kingpin.Application) interface{} {
-	config := new(logicalDiskCollectorConfig)
-	config.VolumeWhiteList = kingpinApp.Flag(
+func (c *LogicalDiskCollector) BuildFlags(application kingpin.Application) {
+	c.volumeWhiteList = application.Flag(
 		"collector.logical_disk.volume-whitelist",
 		"Regexp of volumes to whitelist. Volume name must both match whitelist and not match blacklist to be included.",
 	).Default(".+").String()
-	config.VolumeBlackList = kingpinApp.Flag(
+	c.volumeBlackList = application.Flag(
 		"collector.logical_disk.volume-blacklist",
 		"Regexp of volumes to blacklist. Volume name must both match whitelist and not match blacklist to be included.",
 	).Default("").String()
-	return config
-
 }
 
-// NewLogicalDiskCollector ...
-func NewLogicalDiskCollector(config interface{}) (Collector, error) {
+func (c *LogicalDiskCollector) BuildFlagsForLibrary(m map[string]string) {
+	whitelist , exists := m["collector.logical_disk.volume-whitelist"]
+	if exists == false {
+		whitelist = ".+"
+	}
+	c.volumeWhiteList = &whitelist
+	blacklist, exists := m["collector.logical_disk.volume-blacklist"]
+	if exists == false {
+		blacklist = ""
+	}
+	c.volumeBlackList = &blacklist
+}
 
-	logicalConfig := config.(logicalDiskCollectorConfig)
+func (c *LogicalDiskCollector) Setup() {
+	c.volumeWhitelistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", *c.volumeWhiteList))
+	c.volumeBlacklistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", *c.volumeBlackList))
+}
+
+
+// NewLogicalDiskCollector ...
+func NewLogicalDiskCollector() (Collector, error) {
+
 	const subsystem = "logical_disk"
 
 	return &LogicalDiskCollector{
@@ -161,8 +174,6 @@ func NewLogicalDiskCollector(config interface{}) (Collector, error) {
 			nil,
 		),
 
-		volumeWhitelistPattern: regexp.MustCompile(fmt.Sprintf("^(?:%s)$", *logicalConfig.VolumeWhiteList)),
-		volumeBlacklistPattern: regexp.MustCompile(fmt.Sprintf("^(?:%s)$", *logicalConfig.VolumeBlackList)),
 	}, nil
 }
 

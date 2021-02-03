@@ -13,7 +13,7 @@ import (
 )
 
 func init() {
-	registerCollector("service", NewserviceCollector, nil)
+	registerCollector("service", NewserviceCollector)
 }
 
 var (
@@ -33,8 +33,17 @@ type serviceCollector struct {
 	queryWhereClause string
 }
 
+func (c *serviceCollector) BuildFlags(application kingpin.Application) {
+}
+
+func (c *serviceCollector) BuildFlagsForLibrary(m map[string]string) {
+}
+
+func (c *serviceCollector) Setup() {
+}
+
 // NewserviceCollector ...
-func NewserviceCollector(interface{}) (Collector, error) {
+func NewserviceCollector() (Collector, error) {
 	const subsystem = "service"
 
 	if *serviceWhereClause == "" {

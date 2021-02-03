@@ -6,10 +6,11 @@ import (
 	"github.com/StackExchange/wmi"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 func init() {
-	registerCollector("netframework_clrexceptions", NewNETFramework_NETCLRExceptionsCollector, nil)
+	registerCollector("netframework_clrexceptions", NewNETFramework_NETCLRExceptionsCollector)
 }
 
 // A NETFramework_NETCLRExceptionsCollector is a Prometheus collector for WMI Win32_PerfRawData_NETFramework_NETCLRExceptions metrics
@@ -20,8 +21,17 @@ type NETFramework_NETCLRExceptionsCollector struct {
 	ThrowToCatchDepth    *prometheus.Desc
 }
 
+func (c *NETFramework_NETCLRExceptionsCollector) BuildFlags(application kingpin.Application) {
+}
+
+func (c *NETFramework_NETCLRExceptionsCollector) BuildFlagsForLibrary(m map[string]string) {
+}
+
+func (c *NETFramework_NETCLRExceptionsCollector) Setup() {
+}
+
 // NewNETFramework_NETCLRExceptionsCollector ...
-func NewNETFramework_NETCLRExceptionsCollector(interface{}) (Collector, error) {
+func NewNETFramework_NETCLRExceptionsCollector() (Collector, error) {
 	const subsystem = "netframework_clrexceptions"
 	return &NETFramework_NETCLRExceptionsCollector{
 		NumberofExcepsThrown: prometheus.NewDesc(

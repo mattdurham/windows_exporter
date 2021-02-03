@@ -4,6 +4,7 @@ package collector
 
 import (
 	"errors"
+	"gopkg.in/alecthomas/kingpin.v2"
 
 	"github.com/StackExchange/wmi"
 	"github.com/prometheus/client_golang/prometheus"
@@ -11,7 +12,7 @@ import (
 )
 
 func init() {
-	registerCollector("vmware", NewVmwareCollector, nil)
+	registerCollector("vmware", NewVmwareCollector)
 }
 
 // A VmwareCollector is a Prometheus collector for WMI Win32_PerfRawData_vmGuestLib_VMem/Win32_PerfRawData_vmGuestLib_VCPU metrics
@@ -38,8 +39,17 @@ type VmwareCollector struct {
 	HostProcessorSpeedMHz *prometheus.Desc
 }
 
+func (c *VmwareCollector) BuildFlags(application kingpin.Application) {
+}
+
+func (c *VmwareCollector) BuildFlagsForLibrary(m map[string]string) {
+}
+
+func (c *VmwareCollector) Setup() {
+}
+
 // NewVmwareCollector constructs a new VmwareCollector
-func NewVmwareCollector(interface{}) (Collector, error) {
+func NewVmwareCollector() (Collector, error) {
 	const subsystem = "vmware"
 	return &VmwareCollector{
 		MemActive: prometheus.NewDesc(

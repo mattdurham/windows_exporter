@@ -6,10 +6,11 @@ import (
 	"github.com/StackExchange/wmi"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 func init() {
-	registerCollector("netframework_clrmemory", NewNETFramework_NETCLRMemoryCollector, nil)
+	registerCollector("netframework_clrmemory", NewNETFramework_NETCLRMemoryCollector)
 }
 
 // A NETFramework_NETCLRMemoryCollector is a Prometheus collector for WMI Win32_PerfRawData_NETFramework_NETCLRMemory metrics
@@ -31,8 +32,17 @@ type NETFramework_NETCLRMemoryCollector struct {
 	PromotedMemoryfromGen1             *prometheus.Desc
 }
 
+func (c *NETFramework_NETCLRMemoryCollector) BuildFlags(application kingpin.Application) {
+}
+
+func (c *NETFramework_NETCLRMemoryCollector) BuildFlagsForLibrary(m map[string]string) {
+}
+
+func (c *NETFramework_NETCLRMemoryCollector) Setup() {
+}
+
 // NewNETFramework_NETCLRMemoryCollector ...
-func NewNETFramework_NETCLRMemoryCollector(interface{}) (Collector, error) {
+func NewNETFramework_NETCLRMemoryCollector() (Collector, error) {
 	const subsystem = "netframework_clrmemory"
 	return &NETFramework_NETCLRMemoryCollector{
 		AllocatedBytes: prometheus.NewDesc(

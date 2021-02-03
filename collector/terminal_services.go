@@ -4,6 +4,7 @@ package collector
 
 import (
 	"errors"
+	"gopkg.in/alecthomas/kingpin.v2"
 	"strings"
 
 	"github.com/StackExchange/wmi"
@@ -14,9 +15,10 @@ import (
 const ConnectionBrokerFeatureID uint32 = 133
 
 func init() {
-	registerCollector("terminal_services", NewTerminalServicesCollector,nil, "Terminal Services", "Terminal Services Session", "Remote Desktop Connection Broker Counterset")
+	registerCollector("terminal_services", NewTerminalServicesCollector, "Terminal Services", "Terminal Services Session", "Remote Desktop Connection Broker Counterset")
 }
 
+// This global should be fine, since it is an aspect of the machine
 var (
 	connectionBrokerEnabled = isConnectionBrokerServer()
 )
@@ -64,8 +66,17 @@ type TerminalServicesCollector struct {
 	WorkingSetPeak              *prometheus.Desc
 }
 
+func (c *TerminalServicesCollector) BuildFlags(application kingpin.Application) {
+}
+
+func (c *TerminalServicesCollector) BuildFlagsForLibrary(m map[string]string) {
+}
+
+func (c *TerminalServicesCollector) Setup() {
+}
+
 // NewTerminalServicesCollector ...
-func NewTerminalServicesCollector(interface{}) (Collector, error) {
+func NewTerminalServicesCollector() (Collector, error) {
 	const subsystem = "terminal_services"
 	return &TerminalServicesCollector{
 		LocalSessionCount: prometheus.NewDesc(

@@ -15,7 +15,7 @@ import (
 )
 
 func init() {
-	registerCollector("process", newProcessCollector, buildProcessConfig, "Process")
+	registerCollector("process", newProcessCollector, "Process")
 }
 
 
@@ -36,34 +36,48 @@ type processCollector struct {
 
 	processWhitelistPattern *regexp.Regexp
 	processBlacklistPattern *regexp.Regexp
+
+	processWhiteList *string
+	processBlackList *string
 }
 
-type processConfig struct {
-	ProcessWhiteList *string
-	ProcessBlackList *string
-}
-
-func buildProcessConfig(kingpinApp kingpin.Application) interface{}{
-	config := new(processConfig)
-	config.ProcessWhiteList = kingpinApp.Flag(
+func (c *processCollector) BuildFlags(application kingpin.Application) {
+	c.processWhiteList = application.Flag(
 		"collector.process.whitelist",
 		"Regexp of processes to include. Process name must both match whitelist and not match blacklist to be included.",
 	).Default(".*").String()
-	config.ProcessBlackList = kingpinApp.Flag(
+	c.processBlackList = application.Flag(
 		"collector.process.blacklist",
 		"Regexp of processes to exclude. Process name must both match whitelist and not match blacklist to be included.",
-	).Default("").String()
-	return config
+	).Default("").String()}
+
+func (c *processCollector) BuildFlagsForLibrary(m map[string]string) {
+	processWhiteList, exists := m["collector.process.whitelist"]
+	if exists == false {
+		processWhiteList = ".*"
+	}
+	c.processWhiteList = &processWhiteList
+
+	processBlackList, exists := m["collector.process.blacklist"]
+	if exists == false {
+		processBlackList = ""
+	}
+	c.processBlackList = &processBlackList
 }
 
-// NewProcessCollector ...
-func newProcessCollector(config interface{}) (Collector, error) {
-	processConf := config.(processConfig)
-	const subsystem = "process"
-
-	if *processConf.ProcessWhiteList == ".*" && *processConf.ProcessBlackList == "" {
+func (c *processCollector) Setup() {
+	if *c.processWhiteList == ".*" && *c.processBlackList == "" {
 		log.Warn("No filters specified for process collector. This will generate a very large number of metrics!")
 	}
+	c.processWhitelistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", *c.processWhiteList))
+	c.processBlacklistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", *c.processBlackList))
+}
+
+
+// NewProcessCollector ...
+func newProcessCollector() (Collector, error) {
+	const subsystem = "process"
+
 
 	return &processCollector{
 		StartTime: prometheus.NewDesc(
@@ -144,8 +158,6 @@ func newProcessCollector(config interface{}) (Collector, error) {
 			[]string{"process", "process_id", "creating_process_id"},
 			nil,
 		),
-		processWhitelistPattern: regexp.MustCompile(fmt.Sprintf("^(?:%s)$", *processConf.ProcessWhiteList)),
-		processBlacklistPattern: regexp.MustCompile(fmt.Sprintf("^(?:%s)$", *processConf.ProcessBlackList)),
 	}, nil
 }
 

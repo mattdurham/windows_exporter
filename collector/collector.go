@@ -2,6 +2,7 @@ package collector
 
 import (
 	"fmt"
+	"gopkg.in/alecthomas/kingpin.v2"
 	"sort"
 	"strconv"
 	"strings"
@@ -50,84 +51,52 @@ func getWindowsVersion() float64 {
 	return currentv_flt
 }
 
-type collectorBuilder func(config interface{}) (Collector, error)
+type collectorBuilder func() (Collector, error)
 
-type registerFlags func() interface{}
 
-type registerFlagsForLibrary func(map[string]string) interface{}
 
-type Set struct {
-	builders                 map[string]collectorBuilder
-	perfCounterDependencies  map[string]string
-	flagBuilders             map[string]registerFlags
-	libraryFlagBuilds        map[string]registerFlagsForLibrary
+var (
+	builders                 = make(map[string]collectorBuilder)
+	perfCounterDependencies  = make(map[string]string)
+	)
+
+
+func registerCollector(name string, builder collectorBuilder, perfCounterNames ...string) {
+	builders[name] = builder
+	addPerfCounterDependencies(name, perfCounterNames)
 }
 
-func NewSet() *Set {
-	set := new(Set)
-	set.builders = map[string]collectorBuilder{}
-	set.perfCounterDependencies = map[string]string{}
-	set.flagBuilders = map[string]registerFlags{}
-	set.libraryFlagBuilds = map[string]registerFlagsForLibrary{}
-	return set
-}
-
-func registerCollector(name string, builder collectorBuilder, flagBuilder registerFlags, perfCounterNames ...string) {
-	cs.builders[name] = builder
-	if flagBuilder != nil {
-		cs.flagBuilders[name] = flagBuilder
-	}
-	cs.addPerfCounterDependencies(name, perfCounterNames)
-}
-
-func (cs *Set) addPerfCounterDependencies(name string, perfCounterNames []string) {
+func addPerfCounterDependencies(name string, perfCounterNames []string) {
 	perfIndicies := make([]string, 0, len(perfCounterNames))
 	for _, cn := range perfCounterNames {
 		perfIndicies = append(perfIndicies, MapCounterToIndex(cn))
 	}
-	cs.perfCounterDependencies[name] = strings.Join(perfIndicies, " ")
+	perfCounterDependencies[name] = strings.Join(perfIndicies, " ")
 }
 
-func (cs *Set) Available() []string {
-	available := make([]string, 0, len(cs.builders))
-	for c := range cs.builders {
+func Available() []string {
+	available := make([]string, 0, len(builders))
+	for c := range builders {
 		available = append(available, c)
 	}
 	return available
 }
-func (cs *Set) Build(collector string) (Collector, error) {
-	builder, exists := cs.builders[collector]
-	flagBuilder, _ := cs.flagBuilders[collector]
+func Build(collector string) (Collector, error) {
+	builder, exists := builders[collector]
 	if !exists {
 		return nil, fmt.Errorf("Unknown collector %q", collector)
 	}
-
-	if flagBuilder != nil {
-		config := flagBuilder()
-		return builder(config)
+	c, err := builder()
+	if err != nil {
+		return nil, err
 	}
-	return builder(nil)
-}
+	return c, err}
 
 
-func  (cs *Set) BuildForLibrary(collector string, config map[string]string ) (Collector, error) {
-	builder, exists := cs.builders[collector]
-	flagBuilder, _ := cs.libraryFlagBuilds[collector]
-	if !exists {
-		return nil, fmt.Errorf("Unknown collector %q", collector)
-	}
-
-	if flagBuilder != nil {
-		config := flagBuilder(config)
-		return builder(config)
-	}
-	return builder(nil)
-}
-
-func (cs *Set) getPerfQuery(collectors []string) string {
+func getPerfQuery(collectors []string) string {
 	parts := make([]string, 0, len(collectors))
 	for _, c := range collectors {
-		if p := cs.perfCounterDependencies[c]; p != "" {
+		if p := perfCounterDependencies[c]; p != "" {
 			parts = append(parts, p)
 		}
 	}
@@ -135,9 +104,21 @@ func (cs *Set) getPerfQuery(collectors []string) string {
 }
 
 // Collector is the interface a collector has to implement.
+//   Separated into 4 distinct stages for usage as a library. You may want to run multiple collectors with different
+//	 config.
+//	 Use *BuildFlags* when running as a standalone application, this sets up the configuration for a collector
+//	 Use *BuildFlagsForLibrary* when creating an exporter as a library
+//   *Setup* is used to setup any validations or regexs that are needed
+//
 type Collector interface {
 	// Get new metrics and expose them via prometheus registry.
 	Collect(ctx *ScrapeContext, ch chan<- prometheus.Metric) (err error)
+
+	BuildFlags(kingpin.Application)
+
+	BuildFlagsForLibrary(map[string]string)
+
+	Setup()
 }
 
 type ScrapeContext struct {
@@ -145,8 +126,8 @@ type ScrapeContext struct {
 }
 
 // PrepareScrapeContext creates a ScrapeContext to be used during a single scrape
-func (cs *Set) PrepareScrapeContext(collectors []string) (*ScrapeContext, error) {
-	q := cs.getPerfQuery(collectors) // TODO: Memoize
+func PrepareScrapeContext(collectors []string) (*ScrapeContext, error) {
+	q := getPerfQuery(collectors) // TODO: Memoize
 	objs, err := getPerflibSnapshot(q)
 	if err != nil {
 		return nil, err

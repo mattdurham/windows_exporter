@@ -7,10 +7,11 @@ import (
 	"github.com/StackExchange/wmi"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 func init() {
-	registerCollector("cs", NewCSCollector, nil)
+	registerCollector("cs", NewCSCollector)
 }
 
 // A CSCollector is a Prometheus collector for WMI metrics
@@ -20,8 +21,17 @@ type CSCollector struct {
 	Hostname            *prometheus.Desc
 }
 
+func (c *CSCollector) Setup() {
+}
+
+func (c *CSCollector) BuildFlags(application kingpin.Application) {
+}
+
+func (c *CSCollector) BuildFlagsForLibrary(m map[string]string) {
+}
+
 // NewCSCollector ...
-func NewCSCollector(interface{}) (Collector, error) {
+func NewCSCollector() (Collector, error) {
 	const subsystem = "cs"
 
 	return &CSCollector{

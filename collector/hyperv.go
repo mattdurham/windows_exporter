@@ -3,6 +3,7 @@
 package collector
 
 import (
+	"gopkg.in/alecthomas/kingpin.v2"
 	"strings"
 
 	"github.com/StackExchange/wmi"
@@ -11,7 +12,7 @@ import (
 )
 
 func init() {
-	registerCollector("hyperv", NewHyperVCollector, nil)
+	registerCollector("hyperv", NewHyperVCollector)
 }
 
 // HyperVCollector is a Prometheus collector for hyper-v
@@ -112,8 +113,17 @@ type HyperVCollector struct {
 	VMNetworkPacketsSent            *prometheus.Desc
 }
 
+func (c *HyperVCollector) BuildFlags(application kingpin.Application) {
+}
+
+func (c *HyperVCollector) BuildFlagsForLibrary(m map[string]string) {
+}
+
+func (c *HyperVCollector) Setup() {
+}
+
 // NewHyperVCollector ...
-func NewHyperVCollector(interface{}) (Collector, error) {
+func NewHyperVCollector() (Collector, error) {
 	buildSubsystemName := func(component string) string { return "hyperv_" + component }
 	return &HyperVCollector{
 		HealthCritical: prometheus.NewDesc(

@@ -6,10 +6,11 @@ import (
 	"github.com/StackExchange/wmi"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 func init() {
-	registerCollector("netframework_clrremoting", NewNETFramework_NETCLRRemotingCollector, nil)
+	registerCollector("netframework_clrremoting", NewNETFramework_NETCLRRemotingCollector)
 }
 
 // A NETFramework_NETCLRRemotingCollector is a Prometheus collector for WMI Win32_PerfRawData_NETFramework_NETCLRRemoting metrics
@@ -22,8 +23,17 @@ type NETFramework_NETCLRRemotingCollector struct {
 	TotalRemoteCalls          *prometheus.Desc
 }
 
+func (c *NETFramework_NETCLRRemotingCollector) BuildFlags(application kingpin.Application) {
+}
+
+func (c *NETFramework_NETCLRRemotingCollector) BuildFlagsForLibrary(m map[string]string) {
+}
+
+func (c *NETFramework_NETCLRRemotingCollector) Setup() {
+}
+
 // NewNETFramework_NETCLRRemotingCollector ...
-func NewNETFramework_NETCLRRemotingCollector(interface{}) (Collector, error) {
+func NewNETFramework_NETCLRRemotingCollector() (Collector, error) {
 	const subsystem = "netframework_clrremoting"
 	return &NETFramework_NETCLRRemotingCollector{
 		Channels: prometheus.NewDesc(

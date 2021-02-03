@@ -7,10 +7,11 @@ import (
 	"github.com/StackExchange/wmi"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 func init() {
-	registerCollector("logon", NewLogonCollector, nil)
+	registerCollector("logon", NewLogonCollector)
 }
 
 // A LogonCollector is a Prometheus collector for WMI metrics
@@ -18,8 +19,17 @@ type LogonCollector struct {
 	LogonType *prometheus.Desc
 }
 
+func (c *LogonCollector) BuildFlags(application kingpin.Application) {
+}
+
+func (c *LogonCollector) BuildFlagsForLibrary(m map[string]string) {
+}
+
+func (c *LogonCollector) Setup() {
+}
+
 // NewLogonCollector ...
-func NewLogonCollector(interface{}) (Collector, error) {
+func NewLogonCollector() (Collector, error) {
 	const subsystem = "logon"
 
 	return &LogonCollector{
