@@ -4,10 +4,10 @@ package collector
 
 import (
 	"errors"
-
 	"github.com/StackExchange/wmi"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 func init() {
@@ -19,6 +19,15 @@ type CSCollector struct {
 	PhysicalMemoryBytes *prometheus.Desc
 	LogicalProcessors   *prometheus.Desc
 	Hostname            *prometheus.Desc
+}
+
+func (c *CSCollector) Setup() {
+}
+
+func (c *CSCollector) BuildFlags(application kingpin.Application) {
+}
+
+func (c *CSCollector) BuildFlagsForLibrary(m map[string]string) {
 }
 
 // NewCSCollector ...

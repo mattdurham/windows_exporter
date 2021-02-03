@@ -82,3 +82,25 @@ func (c *Resolver) Bind(app *kingpin.Application, args []string) error {
 
 	return nil
 }
+
+// NewResolver returns a Resolver structure.
+func NewResolverFromFragment(config string) (map[string]string, error) {
+	flags := map[string]string{}
+	log.Infof("Loading configuration snippet")
+
+	var rawValues map[string]interface{}
+	var byteRep = []byte(config)
+	var err = yaml.Unmarshal(byteRep, &rawValues)
+	if err != nil {
+		return nil, err
+	}
+	// Flatten nested YAML values
+	flattenedValues := flatten(rawValues)
+	for k, v := range flattenedValues {
+		if _, ok := flags[k]; !ok {
+			flags[k] = v
+		}
+	}
+	return flags, nil
+}
+

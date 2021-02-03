@@ -53,6 +53,15 @@ type textFileCollector struct {
 	mtime *float64
 }
 
+func (c *textFileCollector) BuildFlags(application kingpin.Application) {
+}
+
+func (c *textFileCollector) BuildFlagsForLibrary(m map[string]string) {
+}
+
+func (c *textFileCollector) Setup() {
+}
+
 func init() {
 	registerCollector("textfile", NewTextFileCollector)
 }

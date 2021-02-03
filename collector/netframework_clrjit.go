@@ -6,6 +6,7 @@ import (
 	"github.com/StackExchange/wmi"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 func init() {
@@ -18,6 +19,15 @@ type NETFramework_NETCLRJitCollector struct {
 	TimeinJit                  *prometheus.Desc
 	StandardJitFailures        *prometheus.Desc
 	TotalNumberofILBytesJitted *prometheus.Desc
+}
+
+func (c *NETFramework_NETCLRJitCollector) BuildFlags(application kingpin.Application) {
+}
+
+func (c *NETFramework_NETCLRJitCollector) BuildFlagsForLibrary(m map[string]string) {
+}
+
+func (c *NETFramework_NETCLRJitCollector) Setup() {
 }
 
 // NewNETFramework_NETCLRJitCollector ...

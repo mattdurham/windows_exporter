@@ -6,6 +6,7 @@ import (
 	"github.com/Microsoft/hcsshim"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 func init() {
@@ -36,6 +37,17 @@ type ContainerMetricsCollector struct {
 	PacketsSent            *prometheus.Desc
 	DroppedPacketsIncoming *prometheus.Desc
 	DroppedPacketsOutgoing *prometheus.Desc
+}
+
+func (c *ContainerMetricsCollector) Setup() {
+}
+
+func (c *ContainerMetricsCollector) BuildFlags(application kingpin.Application) {
+
+}
+
+func (c *ContainerMetricsCollector) BuildFlagsForLibrary(m map[string]string) {
+
 }
 
 // NewContainerMetricsCollector constructs a new ContainerMetricsCollector

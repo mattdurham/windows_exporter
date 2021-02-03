@@ -33,6 +33,15 @@ type serviceCollector struct {
 	queryWhereClause string
 }
 
+func (c *serviceCollector) BuildFlags(application kingpin.Application) {
+}
+
+func (c *serviceCollector) BuildFlagsForLibrary(m map[string]string) {
+}
+
+func (c *serviceCollector) Setup() {
+}
+
 // NewserviceCollector ...
 func NewserviceCollector() (Collector, error) {
 	const subsystem = "service"

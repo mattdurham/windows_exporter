@@ -6,6 +6,7 @@ import (
 	"github.com/StackExchange/wmi"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 func init() {
@@ -21,6 +22,15 @@ type NETFramework_NETCLRLocksAndThreadsCollector struct {
 	Numberoftotalrecognizedthreads   *prometheus.Desc
 	QueueLengthPeak                  *prometheus.Desc
 	TotalNumberofContentions         *prometheus.Desc
+}
+
+func (c *NETFramework_NETCLRLocksAndThreadsCollector) BuildFlags(application kingpin.Application) {
+}
+
+func (c *NETFramework_NETCLRLocksAndThreadsCollector) BuildFlagsForLibrary(m map[string]string) {
+}
+
+func (c *NETFramework_NETCLRLocksAndThreadsCollector) Setup() {
 }
 
 // NewNETFramework_NETCLRLocksAndThreadsCollector ...

@@ -3,6 +3,7 @@
 package collector
 
 import (
+	"gopkg.in/alecthomas/kingpin.v2"
 	"strings"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -25,6 +26,17 @@ type cpuCollectorBasic struct {
 	InterruptsTotal    *prometheus.Desc
 	DPCsTotal          *prometheus.Desc
 }
+
+func (c *cpuCollectorBasic) Setup() {
+}
+
+func (c *cpuCollectorBasic) BuildFlags(application kingpin.Application) {
+
+}
+
+func (c *cpuCollectorBasic) BuildFlagsForLibrary(m map[string]string) {
+}
+
 type cpuCollectorFull struct {
 	CStateSecondsTotal       *prometheus.Desc
 	TimeTotal                *prometheus.Desc
@@ -36,6 +48,17 @@ type cpuCollectorFull struct {
 	ProcessorFrequencyMHz    *prometheus.Desc
 	ProcessorMaxFrequencyMHz *prometheus.Desc
 	ProcessorPerformance     *prometheus.Desc
+}
+
+func (c *cpuCollectorFull) Setup() {
+}
+
+func (c *cpuCollectorFull) BuildFlags(application kingpin.Application) {
+
+}
+
+func (c *cpuCollectorFull) BuildFlagsForLibrary(m map[string]string) {
+
 }
 
 // newCPUCollector constructs a new cpuCollector, appropriate for the running OS

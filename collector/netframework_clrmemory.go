@@ -6,6 +6,7 @@ import (
 	"github.com/StackExchange/wmi"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 func init() {
@@ -29,6 +30,15 @@ type NETFramework_NETCLRMemoryCollector struct {
 	PromotedFinalizationMemoryfromGen0 *prometheus.Desc
 	PromotedMemoryfromGen0             *prometheus.Desc
 	PromotedMemoryfromGen1             *prometheus.Desc
+}
+
+func (c *NETFramework_NETCLRMemoryCollector) BuildFlags(application kingpin.Application) {
+}
+
+func (c *NETFramework_NETCLRMemoryCollector) BuildFlagsForLibrary(m map[string]string) {
+}
+
+func (c *NETFramework_NETCLRMemoryCollector) Setup() {
 }
 
 // NewNETFramework_NETCLRMemoryCollector ...

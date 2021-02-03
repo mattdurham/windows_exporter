@@ -6,6 +6,7 @@ import (
 	"github.com/StackExchange/wmi"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 func init() {
@@ -20,6 +21,15 @@ type NETFramework_NETCLRRemotingCollector struct {
 	ContextProxies            *prometheus.Desc
 	Contexts                  *prometheus.Desc
 	TotalRemoteCalls          *prometheus.Desc
+}
+
+func (c *NETFramework_NETCLRRemotingCollector) BuildFlags(application kingpin.Application) {
+}
+
+func (c *NETFramework_NETCLRRemotingCollector) BuildFlagsForLibrary(m map[string]string) {
+}
+
+func (c *NETFramework_NETCLRRemotingCollector) Setup() {
 }
 
 // NewNETFramework_NETCLRRemotingCollector ...

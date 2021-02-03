@@ -4,10 +4,10 @@ package collector
 
 import (
 	"errors"
-
 	"github.com/StackExchange/wmi"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 func init() {
@@ -77,6 +77,15 @@ type ADCollector struct {
 	SamPasswordChangesTotal                             *prometheus.Desc
 	TombstonedObjectsCollectedTotal                     *prometheus.Desc
 	TombstonedObjectsVisitedTotal                       *prometheus.Desc
+}
+
+func (c *ADCollector) Setup() {
+}
+
+func (c *ADCollector) BuildFlags(application kingpin.Application) {
+}
+
+func (c *ADCollector) BuildFlagsForLibrary(m map[string]string) {
 }
 
 // NewADCollector ...

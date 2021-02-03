@@ -56,12 +56,6 @@ func getIISVersion() simple_version {
 	}
 }
 
-var (
-	siteWhitelist = kingpin.Flag("collector.iis.site-whitelist", "Regexp of sites to whitelist. Site name must both match whitelist and not match blacklist to be included.").Default(".+").String()
-	siteBlacklist = kingpin.Flag("collector.iis.site-blacklist", "Regexp of sites to blacklist. Site name must both match whitelist and not match blacklist to be included.").String()
-	appWhitelist  = kingpin.Flag("collector.iis.app-whitelist", "Regexp of apps to whitelist. App name must both match whitelist and not match blacklist to be included.").Default(".+").String()
-	appBlacklist  = kingpin.Flag("collector.iis.app-blacklist", "Regexp of apps to blacklist. App name must both match whitelist and not match blacklist to be included.").String()
-)
 
 type IISCollector struct {
 	CurrentAnonymousUsers         *prometheus.Desc
@@ -189,6 +183,46 @@ type IISCollector struct {
 	appBlacklistPattern *regexp.Regexp
 
 	iis_version simple_version
+
+	siteWhitelist *string
+	siteBlacklist *string
+	appWhitelist *string
+	appBlacklist *string
+}
+
+func (c *IISCollector) BuildFlags(application kingpin.Application) {
+	c.siteWhitelist = application.Flag("collector.iis.site-whitelist", "Regexp of sites to whitelist. Site name must both match whitelist and not match blacklist to be included.").Default(".+").String()
+	c.siteBlacklist = application.Flag("collector.iis.site-blacklist", "Regexp of sites to blacklist. Site name must both match whitelist and not match blacklist to be included.").String()
+	c.appWhitelist  = application.Flag("collector.iis.app-whitelist", "Regexp of apps to whitelist. App name must both match whitelist and not match blacklist to be included.").Default(".+").String()
+	c.appBlacklist  = application.Flag("collector.iis.app-blacklist", "Regexp of apps to blacklist. App name must both match whitelist and not match blacklist to be included.").String()
+}
+
+func (c *IISCollector) BuildFlagsForLibrary(m map[string]string) {
+	siteWhiteList, exists := m["collector.iis.site-whitelist"]
+	if exists == false {
+		siteWhiteList = ".+"
+	}
+	c.siteWhitelist = &siteWhiteList
+
+	appWhitelist, exists := m["collector.iis.app-whitelist"]
+	if exists == false {
+		appWhitelist = ".+"
+	}
+	c.appWhitelist = &appWhitelist
+
+	siteBlackList := m["collector.iis.site-blacklist"]
+	c.siteBlacklist = &siteBlackList
+	appBlackList := m["collector.iis.app-blacklist"]
+	c.appBlacklist  = &appBlackList
+}
+
+func (c *IISCollector) Setup() {
+
+	c.siteWhitelistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", *c.siteWhitelist))
+	c.siteBlacklistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", *c.siteBlacklist))
+
+	c.appWhitelistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", *c.appWhitelist))
+	c.appBlacklistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", *c.appBlacklist))
 }
 
 // NewIISCollector ...
@@ -326,9 +360,6 @@ func NewIISCollector() (Collector, error) {
 			[]string{"site"},
 			nil,
 		),
-
-		siteWhitelistPattern: regexp.MustCompile(fmt.Sprintf("^(?:%s)$", *siteWhitelist)),
-		siteBlacklistPattern: regexp.MustCompile(fmt.Sprintf("^(?:%s)$", *siteBlacklist)),
 
 		// App Pools
 		// Guages
@@ -807,8 +838,6 @@ func NewIISCollector() (Collector, error) {
 			nil,
 		),
 
-		appWhitelistPattern: regexp.MustCompile(fmt.Sprintf("^(?:%s)$", *appWhitelist)),
-		appBlacklistPattern: regexp.MustCompile(fmt.Sprintf("^(?:%s)$", *appBlacklist)),
 	}
 
 	buildIIS.iis_version = getIISVersion()

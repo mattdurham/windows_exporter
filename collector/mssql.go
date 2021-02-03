@@ -387,6 +387,15 @@ type MSSQLCollector struct {
 	mssqlChildCollectorFailure int
 }
 
+func (c *MSSQLCollector) BuildFlags(application kingpin.Application) {
+}
+
+func (c *MSSQLCollector) BuildFlagsForLibrary(m map[string]string) {
+}
+
+func (c *MSSQLCollector) Setup() {
+}
+
 // NewMSSQLCollector ...
 func NewMSSQLCollector() (Collector, error) {
 

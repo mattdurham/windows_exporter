@@ -5,6 +5,7 @@ package collector
 import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 func init() {
@@ -19,6 +20,15 @@ type SystemCollector struct {
 	SystemCallsTotal         *prometheus.Desc
 	SystemUpTime             *prometheus.Desc
 	Threads                  *prometheus.Desc
+}
+
+func (c *SystemCollector) BuildFlags(application kingpin.Application) {
+}
+
+func (c *SystemCollector) BuildFlagsForLibrary(m map[string]string) {
+}
+
+func (c *SystemCollector) Setup() {
 }
 
 // NewSystemCollector ...

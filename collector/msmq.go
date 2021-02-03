@@ -15,9 +15,6 @@ func init() {
 	registerCollector("msmq", NewMSMQCollector)
 }
 
-var (
-	msmqWhereClause = kingpin.Flag("collector.msmq.msmq-where", "WQL 'where' clause to use in WMI metrics query. Limits the response to the msmqs you specify and reduces the size of the response.").String()
-)
 
 // A Win32_PerfRawData_MSMQ_MSMQQueueCollector is a Prometheus collector for WMI Win32_PerfRawData_MSMQ_MSMQQueue metrics
 type Win32_PerfRawData_MSMQ_MSMQQueueCollector struct {
@@ -29,10 +26,19 @@ type Win32_PerfRawData_MSMQ_MSMQQueueCollector struct {
 	queryWhereClause string
 }
 
+func (c *Win32_PerfRawData_MSMQ_MSMQQueueCollector) BuildFlags(application kingpin.Application) {
+}
+
+func (c *Win32_PerfRawData_MSMQ_MSMQQueueCollector) BuildFlagsForLibrary(m map[string]string) {
+}
+
+func (c *Win32_PerfRawData_MSMQ_MSMQQueueCollector) Setup() {
+}
+
 // NewWin32_PerfRawData_MSMQ_MSMQQueueCollector ...
 func NewMSMQCollector() (Collector, error) {
 	const subsystem = "msmq"
-
+	msmqWhereClause := kingpin.Flag("collector.msmq.msmq-where", "WQL 'where' clause to use in WMI metrics query. Limits the response to the msmqs you specify and reduces the size of the response.").String()
 	if *msmqWhereClause == "" {
 		log.Warn("No where-clause specified for msmq collector. This will generate a very large number of metrics!")
 	}

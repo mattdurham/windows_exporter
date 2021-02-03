@@ -2,6 +2,7 @@ package collector
 
 import (
 	"fmt"
+	"gopkg.in/alecthomas/kingpin.v2"
 	"sort"
 	"strconv"
 	"strings"
@@ -52,10 +53,13 @@ func getWindowsVersion() float64 {
 
 type collectorBuilder func() (Collector, error)
 
+
+
 var (
-	builders                = make(map[string]collectorBuilder)
-	perfCounterDependencies = make(map[string]string)
-)
+	builders                 = make(map[string]collectorBuilder)
+	perfCounterDependencies  = make(map[string]string)
+	)
+
 
 func registerCollector(name string, builder collectorBuilder, perfCounterNames ...string) {
 	builders[name] = builder
@@ -71,19 +75,24 @@ func addPerfCounterDependencies(name string, perfCounterNames []string) {
 }
 
 func Available() []string {
-	cs := make([]string, 0, len(builders))
+	available := make([]string, 0, len(builders))
 	for c := range builders {
-		cs = append(cs, c)
+		available = append(available, c)
 	}
-	return cs
+	return available
 }
 func Build(collector string) (Collector, error) {
 	builder, exists := builders[collector]
 	if !exists {
 		return nil, fmt.Errorf("Unknown collector %q", collector)
 	}
-	return builder()
-}
+	c, err := builder()
+	if err != nil {
+		return nil, err
+	}
+	return c, err}
+
+
 func getPerfQuery(collectors []string) string {
 	parts := make([]string, 0, len(collectors))
 	for _, c := range collectors {
@@ -95,9 +104,21 @@ func getPerfQuery(collectors []string) string {
 }
 
 // Collector is the interface a collector has to implement.
+//   Separated into 4 distinct stages for usage as a library. You may want to run multiple collectors with different
+//	 config.
+//	 Use *BuildFlags* when running as a standalone application, this sets up the configuration for a collector
+//	 Use *BuildFlagsForLibrary* when creating an exporter as a library
+//   *Setup* is used to setup any validations or regexs that are needed
+//
 type Collector interface {
 	// Get new metrics and expose them via prometheus registry.
 	Collect(ctx *ScrapeContext, ch chan<- prometheus.Metric) (err error)
+
+	BuildFlags(kingpin.Application)
+
+	BuildFlagsForLibrary(map[string]string)
+
+	Setup()
 }
 
 type ScrapeContext struct {

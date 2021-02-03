@@ -4,6 +4,7 @@ package collector
 
 import (
 	"github.com/prometheus/client_golang/prometheus"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 func init() {
@@ -37,6 +38,15 @@ type DhcpCollector struct {
 	FailoverTransitionsPartnerdownState              *prometheus.Desc
 	FailoverTransitionsRecoverState                  *prometheus.Desc
 	FailoverBndupdDropped                            *prometheus.Desc
+}
+
+func (c *DhcpCollector) BuildFlags(application kingpin.Application) {
+}
+
+func (c *DhcpCollector) BuildFlagsForLibrary(m map[string]string) {
+}
+
+func (c *DhcpCollector) Setup() {
 }
 
 func NewDhcpCollector() (Collector, error) {

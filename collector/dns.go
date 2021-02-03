@@ -4,10 +4,10 @@ package collector
 
 import (
 	"errors"
-
 	"github.com/StackExchange/wmi"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 func init() {
@@ -38,6 +38,15 @@ type DNSCollector struct {
 	WinsQueries                   *prometheus.Desc
 	WinsResponses                 *prometheus.Desc
 	UnmatchedResponsesReceived    *prometheus.Desc
+}
+
+func (c *DNSCollector) BuildFlags(application kingpin.Application) {
+}
+
+func (c *DNSCollector) BuildFlagsForLibrary(m map[string]string) {
+}
+
+func (c *DNSCollector) Setup() {
 }
 
 // NewDNSCollector ...

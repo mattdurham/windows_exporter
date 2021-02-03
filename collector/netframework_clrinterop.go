@@ -6,6 +6,7 @@ import (
 	"github.com/StackExchange/wmi"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 func init() {
@@ -17,6 +18,15 @@ type NETFramework_NETCLRInteropCollector struct {
 	NumberofCCWs        *prometheus.Desc
 	Numberofmarshalling *prometheus.Desc
 	NumberofStubs       *prometheus.Desc
+}
+
+func (c *NETFramework_NETCLRInteropCollector) BuildFlags(application kingpin.Application) {
+}
+
+func (c *NETFramework_NETCLRInteropCollector) BuildFlagsForLibrary(m map[string]string) {
+}
+
+func (c *NETFramework_NETCLRInteropCollector) Setup() {
 }
 
 // NewNETFramework_NETCLRInteropCollector ...

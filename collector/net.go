@@ -12,20 +12,10 @@ import (
 )
 
 func init() {
-	registerCollector("net", NewNetworkCollector, "Network Interface")
+	registerCollector("net", NewNetworkCollector,"Network Interface")
 }
 
-var (
-	nicWhitelist = kingpin.Flag(
-		"collector.net.nic-whitelist",
-		"Regexp of NIC:s to whitelist. NIC name must both match whitelist and not match blacklist to be included.",
-	).Default(".+").String()
-	nicBlacklist = kingpin.Flag(
-		"collector.net.nic-blacklist",
-		"Regexp of NIC:s to blacklist. NIC name must both match whitelist and not match blacklist to be included.",
-	).Default("").String()
-	nicNameToUnderscore = regexp.MustCompile("[^a-zA-Z0-9]")
-)
+var nicNameToUnderscore = regexp.MustCompile("[^a-zA-Z0-9]")
 
 // A NetworkCollector is a Prometheus collector for Perflib Network Interface metrics
 type NetworkCollector struct {
@@ -44,7 +34,43 @@ type NetworkCollector struct {
 
 	nicWhitelistPattern *regexp.Regexp
 	nicBlacklistPattern *regexp.Regexp
+
+	nicWhiteList *string
+	nicBlackList *string
 }
+
+func (c *NetworkCollector) BuildFlags(application kingpin.Application) {
+	c.nicBlackList = application.Flag(
+		"collector.net.nic-blacklist",
+		"Regexp of NIC:s to blacklist. NIC name must both match whitelist and not match blacklist to be included.",
+	).Default("").String()
+	c.nicWhiteList = application.Flag(
+		"collector.net.nic-whitelist",
+		"Regexp of NIC:s to whitelist. NIC name must both match whitelist and not match blacklist to be included.",
+	).Default(".+").String()}
+
+func (c *NetworkCollector) BuildFlagsForLibrary(m map[string]string) {
+	nicBlackList, exists := m["collector.net.nic-blacklist"]
+	if exists == false {
+		nicBlackList = ""
+	}
+	c.nicBlackList = &nicBlackList
+
+	nicWhiteList, exists := m["collector.net.nic-whitelist"]
+	if exists == false {
+		nicWhiteList = ".+"
+	}
+	c.nicWhiteList = &nicWhiteList
+}
+
+func (c *NetworkCollector) Setup() {
+	c.nicWhitelistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", *c.nicWhiteList))
+	c.nicBlacklistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", *c.nicBlackList))
+}
+
+
+
+
 
 // NewNetworkCollector ...
 func NewNetworkCollector() (Collector, error) {
@@ -124,8 +150,7 @@ func NewNetworkCollector() (Collector, error) {
 			nil,
 		),
 
-		nicWhitelistPattern: regexp.MustCompile(fmt.Sprintf("^(?:%s)$", *nicWhitelist)),
-		nicBlacklistPattern: regexp.MustCompile(fmt.Sprintf("^(?:%s)$", *nicBlacklist)),
+
 	}, nil
 }
 
@@ -142,6 +167,7 @@ func (c *NetworkCollector) Collect(ctx *ScrapeContext, ch chan<- prometheus.Metr
 // mangleNetworkName mangles Network Adapter name (non-alphanumeric to _)
 // that is used in networkInterface.
 func mangleNetworkName(name string) string {
+
 	return nicNameToUnderscore.ReplaceAllString(name, "_")
 }
 
