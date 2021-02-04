@@ -12,9 +12,10 @@ import (
 )
 
 func init() {
-	registerCollector("logical_disk", NewLogicalDiskCollector, "LogicalDisk")
+	registerCollector("logical_disk", func() collectorBuilder {
+		return &LogicalDiskConfig{}
+	}, "LogicalDisk")
 }
-
 
 // A LogicalDiskCollector is a Prometheus collector for perflib logicalDisk metrics
 type LogicalDiskCollector struct {
@@ -35,12 +36,14 @@ type LogicalDiskCollector struct {
 
 	volumeWhitelistPattern *regexp.Regexp
 	volumeBlacklistPattern *regexp.Regexp
+}
 
+type LogicalDiskConfig struct {
 	volumeWhiteList *string
 	volumeBlackList *string
 }
 
-func (c *LogicalDiskCollector) BuildFlags(application kingpin.Application) {
+func (c *LogicalDiskConfig) RegisterFlags(application *kingpin.Application) {
 	c.volumeWhiteList = application.Flag(
 		"collector.logical_disk.volume-whitelist",
 		"Regexp of volumes to whitelist. Volume name must both match whitelist and not match blacklist to be included.",
@@ -51,8 +54,8 @@ func (c *LogicalDiskCollector) BuildFlags(application kingpin.Application) {
 	).Default("").String()
 }
 
-func (c *LogicalDiskCollector) BuildFlagsForLibrary(m map[string]string) {
-	whitelist , exists := m["collector.logical_disk.volume-whitelist"]
+func (c *LogicalDiskConfig) RegisterFlagsForLibrary(m map[string]string) {
+	whitelist, exists := m["collector.logical_disk.volume-whitelist"]
 	if exists == false {
 		whitelist = ".+"
 	}
@@ -64,14 +67,18 @@ func (c *LogicalDiskCollector) BuildFlagsForLibrary(m map[string]string) {
 	c.volumeBlackList = &blacklist
 }
 
-func (c *LogicalDiskCollector) Setup() {
-	c.volumeWhitelistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", *c.volumeWhiteList))
-	c.volumeBlacklistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", *c.volumeBlackList))
+func (c *LogicalDiskConfig) Build() (Collector, error) {
+	lc, err := NewLogicalDiskCollector()
+	if err != nil {
+		return nil, err
+	}
+	lc.volumeWhitelistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", *c.volumeWhiteList))
+	lc.volumeBlacklistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", *c.volumeBlackList))
+	return lc, nil
 }
 
-
 // NewLogicalDiskCollector ...
-func NewLogicalDiskCollector() (Collector, error) {
+func NewLogicalDiskCollector() (*LogicalDiskCollector, error) {
 
 	const subsystem = "logical_disk"
 
@@ -173,7 +180,6 @@ func NewLogicalDiskCollector() (Collector, error) {
 			[]string{"volume"},
 			nil,
 		),
-
 	}, nil
 }
 

@@ -3,7 +3,6 @@
 package collector
 
 import (
-	"gopkg.in/alecthomas/kingpin.v2"
 	"strings"
 
 	"github.com/StackExchange/wmi"
@@ -12,7 +11,9 @@ import (
 )
 
 func init() {
-	registerCollector("hyperv", NewHyperVCollector)
+	registerCollector("hyperv", func() collectorBuilder {
+		return builderFunc(NewHyperVCollector)
+	})
 }
 
 // HyperVCollector is a Prometheus collector for hyper-v
@@ -111,15 +112,6 @@ type HyperVCollector struct {
 	VMNetworkDroppedPacketsOutgoing *prometheus.Desc
 	VMNetworkPacketsReceived        *prometheus.Desc
 	VMNetworkPacketsSent            *prometheus.Desc
-}
-
-func (c *HyperVCollector) BuildFlags(application kingpin.Application) {
-}
-
-func (c *HyperVCollector) BuildFlagsForLibrary(m map[string]string) {
-}
-
-func (c *HyperVCollector) Setup() {
 }
 
 // NewHyperVCollector ...

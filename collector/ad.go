@@ -7,11 +7,12 @@ import (
 	"github.com/StackExchange/wmi"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
-	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 func init() {
-	registerCollector("ad", NewADCollector)
+	registerCollector("ad", func() collectorBuilder {
+		return builderFunc(NewADCollector)
+	})
 }
 
 // A ADCollector is a Prometheus collector for WMI Win32_PerfRawData_DirectoryServices_DirectoryServices metrics
@@ -77,15 +78,6 @@ type ADCollector struct {
 	SamPasswordChangesTotal                             *prometheus.Desc
 	TombstonedObjectsCollectedTotal                     *prometheus.Desc
 	TombstonedObjectsVisitedTotal                       *prometheus.Desc
-}
-
-func (c *ADCollector) Setup() {
-}
-
-func (c *ADCollector) BuildFlags(application kingpin.Application) {
-}
-
-func (c *ADCollector) BuildFlagsForLibrary(m map[string]string) {
 }
 
 // NewADCollector ...

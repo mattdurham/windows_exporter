@@ -51,17 +51,25 @@ func getWindowsVersion() float64 {
 	return currentv_flt
 }
 
-type collectorBuilder func() (Collector, error)
+type collectorBuilder interface {
+	RegisterFlags(app *kingpin.Application)
+	Build() (Collector, error)
+	RegisterFlagsForLibrary(map[string]string)
+}
 
+type builderFunc func() (Collector, error)
 
+func (f builderFunc) RegisterFlags(app *kingpin.Application)    {}
+func (f builderFunc) Build() (Collector, error)                 { return f() }
+func (f builderFunc) RegisterFlagsForLibrary(map[string]string) {}
+func (f builderFunc) Setup()                                    {}
 
 var (
-	builders                 = make(map[string]collectorBuilder)
-	perfCounterDependencies  = make(map[string]string)
-	)
+	builders                = make(map[string]func() collectorBuilder)
+	perfCounterDependencies = make(map[string]string)
+)
 
-
-func registerCollector(name string, builder collectorBuilder, perfCounterNames ...string) {
+func registerCollector(name string, builder func() collectorBuilder, perfCounterNames ...string) {
 	builders[name] = builder
 	addPerfCounterDependencies(name, perfCounterNames)
 }
@@ -81,17 +89,28 @@ func Available() []string {
 	}
 	return available
 }
-func Build(collector string) (Collector, error) {
+
+func Build(collector string, app *kingpin.Application) (Collector, error) {
 	builder, exists := builders[collector]
 	if !exists {
 		return nil, fmt.Errorf("Unknown collector %q", collector)
 	}
-	c, err := builder()
-	if err != nil {
-		return nil, err
-	}
-	return c, err}
+	collectorFunc := builder()
+	collectorFunc.RegisterFlags(app)
+	c, err := collectorFunc.Build()
+	return c, err
+}
 
+func BuildForLibrary(collector string, settings map[string]string) (Collector, error) {
+	builder, exists := builders[collector]
+	if !exists {
+		return nil, fmt.Errorf("Unknown collector %q", collector)
+	}
+	collectorFunc := builder()
+	collectorFunc.RegisterFlagsForLibrary(settings)
+	c, err := collectorFunc.Build()
+	return c, err
+}
 
 func getPerfQuery(collectors []string) string {
 	parts := make([]string, 0, len(collectors))
@@ -106,20 +125,35 @@ func getPerfQuery(collectors []string) string {
 // Collector is the interface a collector has to implement.
 //   Separated into 4 distinct stages for usage as a library. You may want to run multiple collectors with different
 //	 config.
-//	 Use *BuildFlags* when running as a standalone application, this sets up the configuration for a collector
-//	 Use *BuildFlagsForLibrary* when creating an exporter as a library
+//	 Use *RegisterFlags* when running as a standalone application, this sets up the configuration for a collector
+//	 Use *RegisterFlagsForLibrary* when creating an exporter as a library
 //   *Setup* is used to setup any validations or regexs that are needed
 //
 type Collector interface {
 	// Get new metrics and expose them via prometheus registry.
 	Collect(ctx *ScrapeContext, ch chan<- prometheus.Metric) (err error)
-
-	BuildFlags(kingpin.Application)
-
-	BuildFlagsForLibrary(map[string]string)
-
-	Setup()
 }
+
+// Collectors is the set of supported collectors.
+type Collectors struct {
+	builders map[string]collectorBuilder
+}
+
+/*
+// NewCollectors creates a new list of collectors.
+func NewCollectors() *Collectors {
+	localBuilders := make(map[string]collectorBuilder, len(builders))
+	for k, v := range builders {
+		// If the builder is a pointer to a struct, make a copy to allow multiple
+		// concurrent sets of Collectors to be defined and configured separately.
+		rv := reflect.ValueOf(v)
+		if rv.Kind() == reflect.Ptr && rv.Elem().Kind() == reflect.Struct {
+			v = reflect.New(rv.Elem().Type()).Interface().(collectorBuilder)
+		}
+		localBuilders[k] = v
+	}
+	return &Collectors{builders: localBuilders}
+}*/
 
 type ScrapeContext struct {
 	perfObjects map[string]*perflib.PerfObject

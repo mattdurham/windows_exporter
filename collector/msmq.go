@@ -12,9 +12,10 @@ import (
 )
 
 func init() {
-	registerCollector("msmq", NewMSMQCollector)
+	registerCollector("msmq", func() collectorBuilder {
+		return builderFunc(NewMSMQCollector)
+	})
 }
-
 
 // A Win32_PerfRawData_MSMQ_MSMQQueueCollector is a Prometheus collector for WMI Win32_PerfRawData_MSMQ_MSMQQueue metrics
 type Win32_PerfRawData_MSMQ_MSMQQueueCollector struct {
@@ -24,15 +25,6 @@ type Win32_PerfRawData_MSMQ_MSMQQueueCollector struct {
 	MessagesinQueue        *prometheus.Desc
 
 	queryWhereClause string
-}
-
-func (c *Win32_PerfRawData_MSMQ_MSMQQueueCollector) BuildFlags(application kingpin.Application) {
-}
-
-func (c *Win32_PerfRawData_MSMQ_MSMQQueueCollector) BuildFlagsForLibrary(m map[string]string) {
-}
-
-func (c *Win32_PerfRawData_MSMQ_MSMQQueueCollector) Setup() {
 }
 
 // NewWin32_PerfRawData_MSMQ_MSMQQueueCollector ...

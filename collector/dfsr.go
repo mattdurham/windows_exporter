@@ -4,12 +4,14 @@ package collector
 
 import (
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/common/log"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 func init() {
-	registerCollector("dfsr", NewDFSRCollector)
+	registerCollector(
+		"dfsr",
+		func() collectorBuilder { return &DFRSConfig{} },
+	)
 }
 
 // DFSRCollector contains the metric and state data of the DFSR collectors.
@@ -67,38 +69,45 @@ type DFSRCollector struct {
 
 	// Map of child collector functions used during collection
 	dfsrChildCollectors []dfsrCollectorFunc
+}
 
+type DFRSConfig struct {
 	dfsrEnabledCollectors *string
 }
 
-func (c *DFSRCollector) BuildFlags(application kingpin.Application) {
-	c.dfsrEnabledCollectors = kingpin.Flag("collectors.dfsr.sources-enabled", "Comma-seperated list of DFSR Perflib sources to use.").Default("connection,folder,volume").String()
+func (config *DFRSConfig) RegisterFlags(application *kingpin.Application) {
+	config.dfsrEnabledCollectors = application.Flag("collectors.dfsr.sources-enabled", "Comma-seperated list of DFSR Perflib sources to use.").Default("connection,folder,volume").String()
 }
 
-func (c *DFSRCollector) BuildFlagsForLibrary(m map[string]string) {
+func (config *DFRSConfig) RegisterFlagsForLibrary(m map[string]string) {
 	if dfrs, found := m["collectors.dfsr.sources-enabled"]; found == false {
 		dfrs = "connection,folder,volume"
 	} else {
-		c.dfsrEnabledCollectors = &dfrs
+		config.dfsrEnabledCollectors = &dfrs
 
 	}
 }
 
-func (c *DFSRCollector) Setup() {
+func (config *DFRSConfig) Setup() {
+
+}
+
+func (config *DFRSConfig) Build() (Collector, error) {
+
 	// Perflib sources are dynamic, depending on the enabled child collectors
 	var perflibDependencies []string
-	for _, source := range expandEnabledChildCollectors(*c.dfsrEnabledCollectors) {
+	for _, source := range expandEnabledChildCollectors(*config.dfsrEnabledCollectors) {
 		perflibDependencies = append(perflibDependencies, dfsrGetPerfObjectName(source))
 	}
 	const subsystem = "dfsr"
 
-	enabled := expandEnabledChildCollectors(*c.dfsrEnabledCollectors)
+	enabled := expandEnabledChildCollectors(*config.dfsrEnabledCollectors)
 	perfCounters := make([]string, 0, len(enabled))
 	for _, c := range enabled {
 		perfCounters = append(perfCounters, dfsrGetPerfObjectName(c))
 	}
 	addPerfCounterDependencies(subsystem, perfCounters)
-
+	c := new(DFSRCollector)
 	// meta
 	c.dfsrScrapeDurationDesc = prometheus.NewDesc(
 		prometheus.BuildFQName(Namespace, subsystem, "collector_duration_seconds"),
@@ -404,10 +413,10 @@ func (c *DFSRCollector) Setup() {
 	)
 
 	c.dfsrChildCollectors = c.getDFSRChildCollectors(enabled)
+	return c, nil
 }
 
 type dfsrCollectorFunc func(ctx *ScrapeContext, ch chan<- prometheus.Metric) error
-
 
 // Map Perflib sources to DFSR collector names
 // E.G. volume -> DFS Replication Service Volumes
@@ -423,14 +432,6 @@ func dfsrGetPerfObjectName(collector string) string {
 		suffix = "Replication Service Volumes"
 	}
 	return (prefix + suffix)
-}
-
-
-// NewDFSRCollector is registered
-func NewDFSRCollector() (Collector, error) {
-
-	log.Info("dfsr collector is in an experimental state! Metrics for this collector have not been tested.")
-	return new(DFSRCollector), nil
 }
 
 // Maps enabled child collectors names to their relevant collection function,

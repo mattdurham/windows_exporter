@@ -6,11 +6,12 @@ import (
 	"github.com/StackExchange/wmi"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
-	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 func init() {
-	registerCollector("netframework_clrlocksandthreads", NewNETFramework_NETCLRLocksAndThreadsCollector)
+	registerCollector("netframework_clrlocksandthreads", func() collectorBuilder {
+		return builderFunc(NewNETFramework_NETCLRLocksAndThreadsCollector)
+	})
 }
 
 // A NETFramework_NETCLRLocksAndThreadsCollector is a Prometheus collector for WMI Win32_PerfRawData_NETFramework_NETCLRLocksAndThreads metrics
@@ -22,15 +23,6 @@ type NETFramework_NETCLRLocksAndThreadsCollector struct {
 	Numberoftotalrecognizedthreads   *prometheus.Desc
 	QueueLengthPeak                  *prometheus.Desc
 	TotalNumberofContentions         *prometheus.Desc
-}
-
-func (c *NETFramework_NETCLRLocksAndThreadsCollector) BuildFlags(application kingpin.Application) {
-}
-
-func (c *NETFramework_NETCLRLocksAndThreadsCollector) BuildFlagsForLibrary(m map[string]string) {
-}
-
-func (c *NETFramework_NETCLRLocksAndThreadsCollector) Setup() {
 }
 
 // NewNETFramework_NETCLRLocksAndThreadsCollector ...

@@ -219,11 +219,11 @@ func expandEnabledCollectors(enabled string) []string {
 	return result
 }
 
-func loadCollectors(list string) (map[string]collector.Collector, error) {
+func loadCollectors(list string, app *kingpin.Application) (map[string]collector.Collector, error) {
 	collectors := map[string]collector.Collector{}
 	enabled := expandEnabledCollectors(list)
 	for _, name := range enabled {
-		c, err := collector.Build(name)
+		c, err := collector.Build(name, app)
 		if err != nil {
 			return nil, err
 		}
@@ -232,13 +232,12 @@ func loadCollectors(list string) (map[string]collector.Collector, error) {
 
 	return collectors, nil
 }
-
 
 func loadCollectorsForLibrary(list string, config map[string]string) (map[string]collector.Collector, error) {
 	collectors := map[string]collector.Collector{}
 	enabled := expandEnabledCollectors(list)
 	for _, name := range enabled {
-		c, err := collector.Build(name)
+		c, err := collector.BuildForLibrary(name, config)
 		if err != nil {
 			return nil, err
 		}
@@ -247,7 +246,6 @@ func loadCollectorsForLibrary(list string, config map[string]string) (map[string
 
 	return collectors, nil
 }
-
 
 func initWbem() {
 	// This initialization prevents a memory leak on WMF 5+. See
@@ -263,8 +261,8 @@ func initWbem() {
 }
 
 func CreateLibrary(configYaml string) *WindowsCollector {
-	flattenedConfig,_ := config.NewResolverFromFragment(configYaml)
-	enabledCollectors, exist :=  flattenedConfig["collectors.enabled"]
+	flattenedConfig, _ := config.NewResolverFromFragment(configYaml)
+	enabledCollectors, exist := flattenedConfig["collectors.enabled"]
 	if exist == false {
 		enabledCollectors = defaultCollectors
 	}
@@ -273,19 +271,14 @@ func CreateLibrary(configYaml string) *WindowsCollector {
 	if err != nil {
 		log.Fatalf("Couldn't load collectors: %s", err)
 	}
-	for _,c := range collectors {
-		c.BuildFlagsForLibrary(flattenedConfig)
-		c.Setup()
-	}
 	log.Infof("Enabled collectors: %v", strings.Join(keys(collectors), ", "))
-
 
 	filteredCollectors := make(map[string]collector.Collector)
 	// scrape all enabled collectors if no collector is requested
 	if len(filteredCollectors) == 0 {
 		filteredCollectors = collectors
 	}
-	for name,_ := range filteredCollectors {
+	for name, _ := range filteredCollectors {
 		col, exists := collectors[name]
 		if !exists {
 			fmt.Errorf("unavailable collector: %s", name)
@@ -293,18 +286,16 @@ func CreateLibrary(configYaml string) *WindowsCollector {
 		}
 		filteredCollectors[name] = col
 	}
-	return  &WindowsCollector{
+	return &WindowsCollector{
 		Collectors:        filteredCollectors,
-		maxScrapeDuration: time.Duration(10*float64(time.Second)),
+		maxScrapeDuration: time.Duration(10 * float64(time.Second)),
 	}
-
-
 
 }
 
 func StartExecutable() {
 
-	kingpinApp := kingpin.New("windows_exporter","")
+	kingpinApp := kingpin.New("windows_exporter", "")
 	var (
 		configFile = kingpinApp.Flag(
 			"config.file",
@@ -342,8 +333,7 @@ func StartExecutable() {
 
 	// Load values from configuration file(s). Executable flags must first be parsed, in order
 	// to load the specified file(s).
-	kingpinApp.Parse( os.Args[1:])
-
+	kingpinApp.Parse(os.Args[1:])
 
 	if *configFile != "" {
 		resolver, err := config.NewResolver(*configFile)
@@ -355,7 +345,7 @@ func StartExecutable() {
 			log.Fatalf("%v\n", err)
 		}
 		// Parse flags once more to include those discovered in configuration file(s).
-		kingpinApp.Parse( os.Args[1:])
+		kingpinApp.Parse(os.Args[1:])
 	}
 
 	if *printCollectors {
@@ -389,13 +379,9 @@ func StartExecutable() {
 		}()
 	}
 
-	collectors, err := loadCollectors(*enabledCollectors )
+	collectors, err := loadCollectors(*enabledCollectors, kingpinApp)
 	if err != nil {
 		log.Fatalf("Couldn't load collectors: %s", err)
-	}
-	for _, c := range collectors {
-		c.BuildFlags(*kingpinApp)
-		c.Setup()
 	}
 
 	log.Infof("Enabled collectors: %v", strings.Join(keys(collectors), ", "))
@@ -567,5 +553,3 @@ func (mh *metricsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	h := promhttp.HandlerFor(reg, promhttp.HandlerOpts{})
 	h.ServeHTTP(w, r)
 }
-
-

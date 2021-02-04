@@ -6,11 +6,12 @@ import (
 	"github.com/StackExchange/wmi"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
-	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 func init() {
-	registerCollector("netframework_clrmemory", NewNETFramework_NETCLRMemoryCollector)
+	registerCollector("netframework_clrmemory", func() collectorBuilder {
+		return builderFunc(NewNETFramework_NETCLRMemoryCollector)
+	})
 }
 
 // A NETFramework_NETCLRMemoryCollector is a Prometheus collector for WMI Win32_PerfRawData_NETFramework_NETCLRMemory metrics
@@ -30,15 +31,6 @@ type NETFramework_NETCLRMemoryCollector struct {
 	PromotedFinalizationMemoryfromGen0 *prometheus.Desc
 	PromotedMemoryfromGen0             *prometheus.Desc
 	PromotedMemoryfromGen1             *prometheus.Desc
-}
-
-func (c *NETFramework_NETCLRMemoryCollector) BuildFlags(application kingpin.Application) {
-}
-
-func (c *NETFramework_NETCLRMemoryCollector) BuildFlagsForLibrary(m map[string]string) {
-}
-
-func (c *NETFramework_NETCLRMemoryCollector) Setup() {
 }
 
 // NewNETFramework_NETCLRMemoryCollector ...

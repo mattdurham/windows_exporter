@@ -12,7 +12,7 @@ import (
 )
 
 func init() {
-	registerCollector("net", NewNetworkCollector,"Network Interface")
+	registerCollector("net", func() collectorBuilder { return &NetworkCollectorConfig{} }, "Network Interface")
 }
 
 var nicNameToUnderscore = regexp.MustCompile("[^a-zA-Z0-9]")
@@ -34,12 +34,14 @@ type NetworkCollector struct {
 
 	nicWhitelistPattern *regexp.Regexp
 	nicBlacklistPattern *regexp.Regexp
+}
 
+type NetworkCollectorConfig struct {
 	nicWhiteList *string
 	nicBlackList *string
 }
 
-func (c *NetworkCollector) BuildFlags(application kingpin.Application) {
+func (c *NetworkCollectorConfig) RegisterFlags(application *kingpin.Application) {
 	c.nicBlackList = application.Flag(
 		"collector.net.nic-blacklist",
 		"Regexp of NIC:s to blacklist. NIC name must both match whitelist and not match blacklist to be included.",
@@ -47,9 +49,10 @@ func (c *NetworkCollector) BuildFlags(application kingpin.Application) {
 	c.nicWhiteList = application.Flag(
 		"collector.net.nic-whitelist",
 		"Regexp of NIC:s to whitelist. NIC name must both match whitelist and not match blacklist to be included.",
-	).Default(".+").String()}
+	).Default(".+").String()
+}
 
-func (c *NetworkCollector) BuildFlagsForLibrary(m map[string]string) {
+func (c *NetworkCollectorConfig) RegisterFlagsForLibrary(m map[string]string) {
 	nicBlackList, exists := m["collector.net.nic-blacklist"]
 	if exists == false {
 		nicBlackList = ""
@@ -63,14 +66,14 @@ func (c *NetworkCollector) BuildFlagsForLibrary(m map[string]string) {
 	c.nicWhiteList = &nicWhiteList
 }
 
-func (c *NetworkCollector) Setup() {
-	c.nicWhitelistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", *c.nicWhiteList))
-	c.nicBlacklistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", *c.nicBlackList))
+func (c *NetworkCollectorConfig) Build() (Collector, error) {
+	nc := &NetworkCollector{}
+	nc.nicWhitelistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", *c.nicWhiteList))
+	nc.nicBlacklistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", *c.nicBlackList))
+	return nc, nil
 }
 
-
-
-
+func (c *NetworkCollectorConfig) Setup() {}
 
 // NewNetworkCollector ...
 func NewNetworkCollector() (Collector, error) {
@@ -149,8 +152,6 @@ func NewNetworkCollector() (Collector, error) {
 			[]string{"nic"},
 			nil,
 		),
-
-
 	}, nil
 }
 

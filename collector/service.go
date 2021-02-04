@@ -13,7 +13,9 @@ import (
 )
 
 func init() {
-	registerCollector("service", NewserviceCollector)
+	registerCollector("service", func() collectorBuilder {
+		return builderFunc(NewserviceCollector)
+	})
 }
 
 var (
@@ -31,15 +33,6 @@ type serviceCollector struct {
 	Status      *prometheus.Desc
 
 	queryWhereClause string
-}
-
-func (c *serviceCollector) BuildFlags(application kingpin.Application) {
-}
-
-func (c *serviceCollector) BuildFlagsForLibrary(m map[string]string) {
-}
-
-func (c *serviceCollector) Setup() {
 }
 
 // NewserviceCollector ...

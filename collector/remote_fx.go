@@ -3,7 +3,6 @@
 package collector
 
 import (
-	"gopkg.in/alecthomas/kingpin.v2"
 	"strings"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -11,7 +10,9 @@ import (
 )
 
 func init() {
-	registerCollector("remote_fx", NewRemoteFx, "RemoteFX Network", "RemoteFX Graphics")
+	registerCollector("remote_fx", func() collectorBuilder {
+		return builderFunc(NewRemoteFx)
+	}, "RemoteFX Network", "RemoteFX Graphics")
 }
 
 // A RemoteFxNetworkCollector is a Prometheus collector for
@@ -40,15 +41,6 @@ type RemoteFxCollector struct {
 	InputFramesPerSecond                        *prometheus.Desc
 	OutputFramesPerSecond                       *prometheus.Desc
 	SourceFramesPerSecond                       *prometheus.Desc
-}
-
-func (c *RemoteFxCollector) BuildFlags(application kingpin.Application) {
-}
-
-func (c *RemoteFxCollector) BuildFlagsForLibrary(m map[string]string) {
-}
-
-func (c *RemoteFxCollector) Setup() {
 }
 
 // NewRemoteFx ...

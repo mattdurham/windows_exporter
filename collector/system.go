@@ -5,11 +5,12 @@ package collector
 import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
-	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 func init() {
-	registerCollector("system", NewSystemCollector, "System")
+	registerCollector("system", func() collectorBuilder {
+		return builderFunc(NewSystemCollector)
+	}, "System")
 }
 
 // A SystemCollector is a Prometheus collector for WMI metrics
@@ -20,15 +21,6 @@ type SystemCollector struct {
 	SystemCallsTotal         *prometheus.Desc
 	SystemUpTime             *prometheus.Desc
 	Threads                  *prometheus.Desc
-}
-
-func (c *SystemCollector) BuildFlags(application kingpin.Application) {
-}
-
-func (c *SystemCollector) BuildFlagsForLibrary(m map[string]string) {
-}
-
-func (c *SystemCollector) Setup() {
 }
 
 // NewSystemCollector ...

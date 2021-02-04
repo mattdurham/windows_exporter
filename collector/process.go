@@ -15,9 +15,10 @@ import (
 )
 
 func init() {
-	registerCollector("process", newProcessCollector, "Process")
+	registerCollector("process", func() collectorBuilder {
+		return builderFunc(newProcessCollector)
+	}, "Process")
 }
-
 
 type processCollector struct {
 	StartTime         *prometheus.Desc
@@ -41,7 +42,7 @@ type processCollector struct {
 	processBlackList *string
 }
 
-func (c *processCollector) BuildFlags(application kingpin.Application) {
+func (c *processCollector) RegisterFlags(application kingpin.Application) {
 	c.processWhiteList = application.Flag(
 		"collector.process.whitelist",
 		"Regexp of processes to include. Process name must both match whitelist and not match blacklist to be included.",
@@ -49,9 +50,10 @@ func (c *processCollector) BuildFlags(application kingpin.Application) {
 	c.processBlackList = application.Flag(
 		"collector.process.blacklist",
 		"Regexp of processes to exclude. Process name must both match whitelist and not match blacklist to be included.",
-	).Default("").String()}
+	).Default("").String()
+}
 
-func (c *processCollector) BuildFlagsForLibrary(m map[string]string) {
+func (c *processCollector) RegisterFlagsForLibrary(m map[string]string) {
 	processWhiteList, exists := m["collector.process.whitelist"]
 	if exists == false {
 		processWhiteList = ".*"
@@ -73,11 +75,9 @@ func (c *processCollector) Setup() {
 	c.processBlacklistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", *c.processBlackList))
 }
 
-
 // NewProcessCollector ...
 func newProcessCollector() (Collector, error) {
 	const subsystem = "process"
-
 
 	return &processCollector{
 		StartTime: prometheus.NewDesc(

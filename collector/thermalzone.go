@@ -4,11 +4,12 @@ import (
 	"github.com/StackExchange/wmi"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
-	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 func init() {
-	registerCollector("thermalzone", NewThermalZoneCollector)
+	registerCollector("thermalzone", func() collectorBuilder {
+		return builderFunc(NewThermalZoneCollector)
+	})
 }
 
 // A thermalZoneCollector is a Prometheus collector for WMI Win32_PerfRawData_Counters_ThermalZoneInformation metrics
@@ -16,15 +17,6 @@ type thermalZoneCollector struct {
 	PercentPassiveLimit *prometheus.Desc
 	Temperature         *prometheus.Desc
 	ThrottleReasons     *prometheus.Desc
-}
-
-func (c *thermalZoneCollector) BuildFlags(application kingpin.Application) {
-}
-
-func (c *thermalZoneCollector) BuildFlagsForLibrary(m map[string]string) {
-}
-
-func (c *thermalZoneCollector) Setup() {
 }
 
 // NewThermalZoneCollector ...

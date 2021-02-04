@@ -8,11 +8,12 @@ package collector
 import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
-	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 func init() {
-	registerCollector("memory", NewMemoryCollector, "Memory")
+	registerCollector("memory", func() collectorBuilder {
+		return builderFunc(NewMemoryCollector)
+	}, "Memory")
 }
 
 // A MemoryCollector is a Prometheus collector for perflib Memory metrics
@@ -49,15 +50,6 @@ type MemoryCollector struct {
 	TransitionFaultsTotal           *prometheus.Desc
 	TransitionPagesRepurposedTotal  *prometheus.Desc
 	WriteCopiesTotal                *prometheus.Desc
-}
-
-func (c *MemoryCollector) BuildFlags(application kingpin.Application) {
-}
-
-func (c *MemoryCollector) BuildFlagsForLibrary(m map[string]string) {
-}
-
-func (c *MemoryCollector) Setup() {
 }
 
 // NewMemoryCollector ...

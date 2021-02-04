@@ -4,11 +4,12 @@ package collector
 
 import (
 	"github.com/prometheus/client_golang/prometheus"
-	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 func init() {
-	registerCollector("dhcp", NewDhcpCollector, "DHCP Server")
+	registerCollector("dhcp", func() collectorBuilder {
+		return builderFunc(NewDhcpCollector)
+	}, "DHCP Server")
 }
 
 // A DhcpCollector is a Prometheus collector perflib DHCP metrics
@@ -38,15 +39,6 @@ type DhcpCollector struct {
 	FailoverTransitionsPartnerdownState              *prometheus.Desc
 	FailoverTransitionsRecoverState                  *prometheus.Desc
 	FailoverBndupdDropped                            *prometheus.Desc
-}
-
-func (c *DhcpCollector) BuildFlags(application kingpin.Application) {
-}
-
-func (c *DhcpCollector) BuildFlagsForLibrary(m map[string]string) {
-}
-
-func (c *DhcpCollector) Setup() {
 }
 
 func NewDhcpCollector() (Collector, error) {

@@ -16,7 +16,9 @@ import (
 )
 
 func init() {
-	registerCollector("iis", NewIISCollector)
+	registerCollector("iis", func() collectorBuilder {
+		return &IISConfig{}
+	})
 }
 
 type simple_version struct {
@@ -55,7 +57,6 @@ func getIISVersion() simple_version {
 		minor: minor,
 	}
 }
-
 
 type IISCollector struct {
 	CurrentAnonymousUsers         *prometheus.Desc
@@ -183,21 +184,23 @@ type IISCollector struct {
 	appBlacklistPattern *regexp.Regexp
 
 	iis_version simple_version
+}
 
+type IISConfig struct {
 	siteWhitelist *string
 	siteBlacklist *string
-	appWhitelist *string
-	appBlacklist *string
+	appWhitelist  *string
+	appBlacklist  *string
 }
 
-func (c *IISCollector) BuildFlags(application kingpin.Application) {
+func (c *IISConfig) RegisterFlags(application *kingpin.Application) {
 	c.siteWhitelist = application.Flag("collector.iis.site-whitelist", "Regexp of sites to whitelist. Site name must both match whitelist and not match blacklist to be included.").Default(".+").String()
 	c.siteBlacklist = application.Flag("collector.iis.site-blacklist", "Regexp of sites to blacklist. Site name must both match whitelist and not match blacklist to be included.").String()
-	c.appWhitelist  = application.Flag("collector.iis.app-whitelist", "Regexp of apps to whitelist. App name must both match whitelist and not match blacklist to be included.").Default(".+").String()
-	c.appBlacklist  = application.Flag("collector.iis.app-blacklist", "Regexp of apps to blacklist. App name must both match whitelist and not match blacklist to be included.").String()
+	c.appWhitelist = application.Flag("collector.iis.app-whitelist", "Regexp of apps to whitelist. App name must both match whitelist and not match blacklist to be included.").Default(".+").String()
+	c.appBlacklist = application.Flag("collector.iis.app-blacklist", "Regexp of apps to blacklist. App name must both match whitelist and not match blacklist to be included.").String()
 }
 
-func (c *IISCollector) BuildFlagsForLibrary(m map[string]string) {
+func (c *IISConfig) RegisterFlagsForLibrary(m map[string]string) {
 	siteWhiteList, exists := m["collector.iis.site-whitelist"]
 	if exists == false {
 		siteWhiteList = ".+"
@@ -213,20 +216,24 @@ func (c *IISCollector) BuildFlagsForLibrary(m map[string]string) {
 	siteBlackList := m["collector.iis.site-blacklist"]
 	c.siteBlacklist = &siteBlackList
 	appBlackList := m["collector.iis.app-blacklist"]
-	c.appBlacklist  = &appBlackList
+	c.appBlacklist = &appBlackList
 }
 
-func (c *IISCollector) Setup() {
+func (c *IISConfig) Build() (Collector, error) {
+	ic, err := NewIISCollector()
+	if err != nil {
+		return nil, err
+	}
+	ic.siteWhitelistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", *c.siteWhitelist))
+	ic.siteBlacklistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", *c.siteBlacklist))
 
-	c.siteWhitelistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", *c.siteWhitelist))
-	c.siteBlacklistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", *c.siteBlacklist))
-
-	c.appWhitelistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", *c.appWhitelist))
-	c.appBlacklistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", *c.appBlacklist))
+	ic.appWhitelistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", *c.appWhitelist))
+	ic.appBlacklistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", *c.appBlacklist))
+	return ic, nil
 }
 
 // NewIISCollector ...
-func NewIISCollector() (Collector, error) {
+func NewIISCollector() (*IISCollector, error) {
 	const subsystem = "iis"
 
 	buildIIS := &IISCollector{
@@ -837,7 +844,6 @@ func NewIISCollector() (Collector, error) {
 			nil,
 			nil,
 		),
-
 	}
 
 	buildIIS.iis_version = getIISVersion()

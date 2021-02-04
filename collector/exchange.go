@@ -13,7 +13,9 @@ import (
 )
 
 func init() {
-	registerCollector("exchange", newExchangeCollector,
+	registerCollector("exchange", func() collectorBuilder {
+		return &ExchangeConfig{}
+	},
 		"MSExchange ADAccess Processes",
 		"MSExchangeTransport Queues",
 		"MSExchange HttpProxy",
@@ -66,11 +68,14 @@ type exchangeCollector struct {
 	UserCount                               *prometheus.Desc
 
 	enabledCollectors []string
+}
+
+type ExchangeConfig struct {
 	argExchangeListAllCollectors *bool
 	argExchangeCollectorsEnabled *string
 }
 
-func (c *exchangeCollector) BuildFlags(application kingpin.Application) {
+func (c *ExchangeConfig) RegisterFlags(application *kingpin.Application) {
 
 	c.argExchangeListAllCollectors = application.Flag(
 		"collectors.exchange.list",
@@ -83,11 +88,11 @@ func (c *exchangeCollector) BuildFlags(application kingpin.Application) {
 	).Default("").String()
 }
 
-func (c *exchangeCollector) BuildFlagsForLibrary(m map[string]string) {
+func (c *ExchangeConfig) RegisterFlagsForLibrary(m map[string]string) {
 	_, exists := m["collectors.exchange.list"]
 	c.argExchangeListAllCollectors = &exists
 
-	if argExchangeCollectorsEnabled, exists := m["collectors.exchange.enabled"]; exists  == false {
+	if argExchangeCollectorsEnabled, exists := m["collectors.exchange.enabled"]; exists == false {
 		argExchangeCollectorsEnabled = ""
 		c.argExchangeCollectorsEnabled = &argExchangeCollectorsEnabled
 	} else {
@@ -97,8 +102,12 @@ func (c *exchangeCollector) BuildFlagsForLibrary(m map[string]string) {
 
 }
 
-func (c *exchangeCollector) Setup() {
+func (c *ExchangeConfig) Build() (Collector, error) {
 
+	ec, error := newExchangeCollector()
+	if error != nil {
+		return nil, error
+	}
 	collectorDesc := map[string]string{
 		"ADAccessProcesses":   "[19108] MSExchange ADAccess Processes",
 		"TransportQueues":     "[20524] MSExchangeTransport Queues",
@@ -121,17 +130,18 @@ func (c *exchangeCollector) Setup() {
 
 	if *c.argExchangeCollectorsEnabled == "" {
 		for _, collectorName := range exchangeAllCollectorNames {
-			c.enabledCollectors = append(c.enabledCollectors, collectorName)
+			ec.enabledCollectors = append(ec.enabledCollectors, collectorName)
 		}
 	} else {
 		for _, collectorName := range strings.Split(*c.argExchangeCollectorsEnabled, ",") {
 			if find(exchangeAllCollectorNames, collectorName) {
-				c.enabledCollectors = append(c.enabledCollectors, collectorName)
+				ec.enabledCollectors = append(ec.enabledCollectors, collectorName)
 			} else {
 				fmt.Errorf("Unknown exchange collector: %s", collectorName)
 			}
 		}
 	}
+	return ec, nil
 }
 
 var (
@@ -147,11 +157,10 @@ var (
 		"WorkloadManagement",
 		"RpcClientAccess",
 	}
-
 )
 
 // newExchangeCollector returns a new Collector
-func newExchangeCollector() (Collector, error) {
+func newExchangeCollector() (*exchangeCollector, error) {
 
 	// desc creates a new prometheus description
 	desc := func(metricName string, description string, labels ...string) *prometheus.Desc {
@@ -204,7 +213,6 @@ func newExchangeCollector() (Collector, error) {
 
 		enabledCollectors: make([]string, 0, len(exchangeAllCollectorNames)),
 	}
-
 
 	return &c, nil
 }

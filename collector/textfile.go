@@ -53,17 +53,10 @@ type textFileCollector struct {
 	mtime *float64
 }
 
-func (c *textFileCollector) BuildFlags(application kingpin.Application) {
-}
-
-func (c *textFileCollector) BuildFlagsForLibrary(m map[string]string) {
-}
-
-func (c *textFileCollector) Setup() {
-}
-
 func init() {
-	registerCollector("textfile", NewTextFileCollector)
+	registerCollector("textfile", func() collectorBuilder {
+		return builderFunc(NewTextFileCollector)
+	})
 }
 
 // NewTextFileCollector returns a new Collector exposing metrics read from files

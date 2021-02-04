@@ -5,11 +5,12 @@ package collector
 import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
-	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 func init() {
-	registerCollector("tcp", NewTCPCollector,"TCPv4", "TCPv6")
+	registerCollector("tcp", func() collectorBuilder {
+		return builderFunc(NewTCPCollector)
+	}, "TCPv4", "TCPv6")
 }
 
 // A TCPCollector is a Prometheus collector for WMI Win32_PerfRawData_Tcpip_TCPv{4,6} metrics
@@ -23,15 +24,6 @@ type TCPCollector struct {
 	SegmentsReceivedTotal      *prometheus.Desc
 	SegmentsRetransmittedTotal *prometheus.Desc
 	SegmentsSentTotal          *prometheus.Desc
-}
-
-func (c *TCPCollector) BuildFlags(application kingpin.Application) {
-}
-
-func (c *TCPCollector) BuildFlagsForLibrary(m map[string]string) {
-}
-
-func (c *TCPCollector) Setup() {
 }
 
 // NewTCPCollector ...

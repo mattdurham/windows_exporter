@@ -6,11 +6,12 @@ import (
 	"github.com/StackExchange/wmi"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
-	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 func init() {
-	registerCollector("netframework_clrjit", NewNETFramework_NETCLRJitCollector)
+	registerCollector("netframework_clrjit", func() collectorBuilder {
+		return builderFunc(NewNETFramework_NETCLRJitCollector)
+	})
 }
 
 // A NETFramework_NETCLRJitCollector is a Prometheus collector for WMI Win32_PerfRawData_NETFramework_NETCLRJit metrics
@@ -19,15 +20,6 @@ type NETFramework_NETCLRJitCollector struct {
 	TimeinJit                  *prometheus.Desc
 	StandardJitFailures        *prometheus.Desc
 	TotalNumberofILBytesJitted *prometheus.Desc
-}
-
-func (c *NETFramework_NETCLRJitCollector) BuildFlags(application kingpin.Application) {
-}
-
-func (c *NETFramework_NETCLRJitCollector) BuildFlagsForLibrary(m map[string]string) {
-}
-
-func (c *NETFramework_NETCLRJitCollector) Setup() {
 }
 
 // NewNETFramework_NETCLRJitCollector ...

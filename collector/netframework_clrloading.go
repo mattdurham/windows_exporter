@@ -6,11 +6,12 @@ import (
 	"github.com/StackExchange/wmi"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
-	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 func init() {
-	registerCollector("netframework_clrloading", NewNETFramework_NETCLRLoadingCollector)
+	registerCollector("netframework_clrloading", func() collectorBuilder {
+		return builderFunc(NewNETFramework_NETCLRLoadingCollector)
+	})
 }
 
 // A NETFramework_NETCLRLoadingCollector is a Prometheus collector for WMI Win32_PerfRawData_NETFramework_NETCLRLoading metrics
@@ -24,15 +25,6 @@ type NETFramework_NETCLRLoadingCollector struct {
 	TotalAssemblies           *prometheus.Desc
 	TotalClassesLoaded        *prometheus.Desc
 	TotalNumberofLoadFailures *prometheus.Desc
-}
-
-func (c *NETFramework_NETCLRLoadingCollector) BuildFlags(application kingpin.Application) {
-}
-
-func (c *NETFramework_NETCLRLoadingCollector) BuildFlagsForLibrary(m map[string]string) {
-}
-
-func (c *NETFramework_NETCLRLoadingCollector) Setup() {
 }
 
 // NewNETFramework_NETCLRLoadingCollector ...
