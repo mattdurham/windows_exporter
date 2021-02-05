@@ -4,14 +4,15 @@ package collector
 
 import (
 	"errors"
-
 	"github.com/StackExchange/wmi"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
 )
 
 func init() {
-	registerCollector("cs", NewCSCollector)
+	registerCollector("cs", func() collectorBuilder {
+		return builderFunc(NewCSCollector)
+	})
 }
 
 // A CSCollector is a Prometheus collector for WMI metrics

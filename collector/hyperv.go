@@ -11,7 +11,9 @@ import (
 )
 
 func init() {
-	registerCollector("hyperv", NewHyperVCollector)
+	registerCollector("hyperv", func() collectorBuilder {
+		return builderFunc(NewHyperVCollector)
+	})
 }
 
 // HyperVCollector is a Prometheus collector for hyper-v

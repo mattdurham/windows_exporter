@@ -9,7 +9,9 @@ import (
 )
 
 func init() {
-	registerCollector("netframework_clrsecurity", NewNETFramework_NETCLRSecurityCollector)
+	registerCollector("netframework_clrsecurity", func() collectorBuilder {
+		return builderFunc(NewNETFramework_NETCLRSecurityCollector)
+	})
 }
 
 // A NETFramework_NETCLRSecurityCollector is a Prometheus collector for WMI Win32_PerfRawData_NETFramework_NETCLRSecurity metrics

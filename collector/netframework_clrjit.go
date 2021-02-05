@@ -9,7 +9,9 @@ import (
 )
 
 func init() {
-	registerCollector("netframework_clrjit", NewNETFramework_NETCLRJitCollector)
+	registerCollector("netframework_clrjit", func() collectorBuilder {
+		return builderFunc(NewNETFramework_NETCLRJitCollector)
+	})
 }
 
 // A NETFramework_NETCLRJitCollector is a Prometheus collector for WMI Win32_PerfRawData_NETFramework_NETCLRJit metrics

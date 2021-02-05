@@ -4,13 +4,14 @@ package collector
 
 import (
 	"errors"
-
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
 )
 
 func init() {
-	registerCollector("time", newTimeCollector, "Windows Time Service")
+	registerCollector("time", func() collectorBuilder {
+		return builderFunc(newTimeCollector)
+	}, "Windows Time Service")
 }
 
 // TimeCollector is a Prometheus collector for Perflib counter metrics

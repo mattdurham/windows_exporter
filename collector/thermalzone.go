@@ -7,7 +7,9 @@ import (
 )
 
 func init() {
-	registerCollector("thermalzone", NewThermalZoneCollector)
+	registerCollector("thermalzone", func() collectorBuilder {
+		return builderFunc(NewThermalZoneCollector)
+	})
 }
 
 // A thermalZoneCollector is a Prometheus collector for WMI Win32_PerfRawData_Counters_ThermalZoneInformation metrics

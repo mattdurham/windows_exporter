@@ -9,7 +9,9 @@ import (
 )
 
 func init() {
-	registerCollector("netframework_clrremoting", NewNETFramework_NETCLRRemotingCollector)
+	registerCollector("netframework_clrremoting", func() collectorBuilder {
+		return builderFunc(NewNETFramework_NETCLRRemotingCollector)
+	})
 }
 
 // A NETFramework_NETCLRRemotingCollector is a Prometheus collector for WMI Win32_PerfRawData_NETFramework_NETCLRRemoting metrics

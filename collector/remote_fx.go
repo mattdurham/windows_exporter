@@ -10,7 +10,9 @@ import (
 )
 
 func init() {
-	registerCollector("remote_fx", NewRemoteFx, "RemoteFX Network", "RemoteFX Graphics")
+	registerCollector("remote_fx", func() collectorBuilder {
+		return builderFunc(NewRemoteFx)
+	}, "RemoteFX Network", "RemoteFX Graphics")
 }
 
 // A RemoteFxNetworkCollector is a Prometheus collector for

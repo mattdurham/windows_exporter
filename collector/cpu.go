@@ -16,7 +16,9 @@ func init() {
 	} else {
 		deps = "Processor"
 	}
-	registerCollector("cpu", newCPUCollector, deps)
+	registerCollector("cpu", func() collectorBuilder {
+		return builderFunc(newCPUCollector)
+	}, deps)
 }
 
 type cpuCollectorBasic struct {
@@ -25,6 +27,7 @@ type cpuCollectorBasic struct {
 	InterruptsTotal    *prometheus.Desc
 	DPCsTotal          *prometheus.Desc
 }
+
 type cpuCollectorFull struct {
 	CStateSecondsTotal       *prometheus.Desc
 	TimeTotal                *prometheus.Desc

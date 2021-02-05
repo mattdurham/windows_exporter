@@ -13,7 +13,9 @@ import (
 )
 
 func init() {
-	registerCollector("service", NewserviceCollector)
+	registerCollector("service", func() collectorBuilder {
+		return builderFunc(NewserviceCollector)
+	})
 }
 
 var (

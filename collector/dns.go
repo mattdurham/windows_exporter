@@ -4,14 +4,15 @@ package collector
 
 import (
 	"errors"
-
 	"github.com/StackExchange/wmi"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
 )
 
 func init() {
-	registerCollector("dns", NewDNSCollector)
+	registerCollector("dns", func() collectorBuilder {
+		return builderFunc(NewDNSCollector)
+	})
 }
 
 // A DNSCollector is a Prometheus collector for WMI Win32_PerfRawData_DNS_DNS metrics

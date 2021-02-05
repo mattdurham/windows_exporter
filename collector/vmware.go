@@ -4,14 +4,15 @@ package collector
 
 import (
 	"errors"
-
 	"github.com/StackExchange/wmi"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
 )
 
 func init() {
-	registerCollector("vmware", NewVmwareCollector)
+	registerCollector("vmware", func() collectorBuilder {
+		return builderFunc(NewVmwareCollector)
+	})
 }
 
 // A VmwareCollector is a Prometheus collector for WMI Win32_PerfRawData_vmGuestLib_VMem/Win32_PerfRawData_vmGuestLib_VCPU metrics

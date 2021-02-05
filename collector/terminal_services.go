@@ -14,9 +14,12 @@ import (
 const ConnectionBrokerFeatureID uint32 = 133
 
 func init() {
-	registerCollector("terminal_services", NewTerminalServicesCollector, "Terminal Services", "Terminal Services Session", "Remote Desktop Connection Broker Counterset")
+	registerCollector("terminal_services", func() collectorBuilder {
+		return builderFunc(NewTerminalServicesCollector)
+	}, "Terminal Services", "Terminal Services Session", "Remote Desktop Connection Broker Counterset")
 }
 
+// This global should be fine, since it is an aspect of the machine
 var (
 	connectionBrokerEnabled = isConnectionBrokerServer()
 )

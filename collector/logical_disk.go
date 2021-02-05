@@ -12,19 +12,10 @@ import (
 )
 
 func init() {
-	registerCollector("logical_disk", NewLogicalDiskCollector, "LogicalDisk")
+	registerCollector("logical_disk", func() collectorBuilder {
+		return &LogicalDiskConfig{}
+	}, "LogicalDisk")
 }
-
-var (
-	volumeWhitelist = kingpin.Flag(
-		"collector.logical_disk.volume-whitelist",
-		"Regexp of volumes to whitelist. Volume name must both match whitelist and not match blacklist to be included.",
-	).Default(".+").String()
-	volumeBlacklist = kingpin.Flag(
-		"collector.logical_disk.volume-blacklist",
-		"Regexp of volumes to blacklist. Volume name must both match whitelist and not match blacklist to be included.",
-	).Default("").String()
-)
 
 // A LogicalDiskCollector is a Prometheus collector for perflib logicalDisk metrics
 type LogicalDiskCollector struct {
@@ -47,8 +38,48 @@ type LogicalDiskCollector struct {
 	volumeBlacklistPattern *regexp.Regexp
 }
 
+type LogicalDiskConfig struct {
+	volumeWhiteList string
+	volumeBlackList string
+}
+
+func (c *LogicalDiskConfig) RegisterFlags(application *kingpin.Application) {
+	application.Flag(
+		"collector.logical_disk.volume-whitelist",
+		"Regexp of volumes to whitelist. Volume name must both match whitelist and not match blacklist to be included.",
+	).Default(".+").StringVar(&c.volumeWhiteList )
+	application.Flag(
+		"collector.logical_disk.volume-blacklist",
+		"Regexp of volumes to blacklist. Volume name must both match whitelist and not match blacklist to be included.",
+	).Default("").StringVar(&c.volumeBlackList)
+}
+
+func (c *LogicalDiskConfig) RegisterFlagsForLibrary(m map[string]string) {
+	whitelist, exists := m["collector.logical_disk.volume-whitelist"]
+	if exists == false {
+		whitelist = ".+"
+	}
+	c.volumeWhiteList = whitelist
+	blacklist, exists := m["collector.logical_disk.volume-blacklist"]
+	if exists == false {
+		blacklist = ""
+	}
+	c.volumeBlackList = blacklist
+}
+
+func (c *LogicalDiskConfig) Build() (Collector, error) {
+	lc, err := NewLogicalDiskCollector()
+	if err != nil {
+		return nil, err
+	}
+	lc.volumeWhitelistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", c.volumeWhiteList))
+	lc.volumeBlacklistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", c.volumeBlackList))
+	return lc, nil
+}
+
 // NewLogicalDiskCollector ...
-func NewLogicalDiskCollector() (Collector, error) {
+func NewLogicalDiskCollector() (*LogicalDiskCollector, error) {
+
 	const subsystem = "logical_disk"
 
 	return &LogicalDiskCollector{
@@ -149,9 +180,6 @@ func NewLogicalDiskCollector() (Collector, error) {
 			[]string{"volume"},
 			nil,
 		),
-
-		volumeWhitelistPattern: regexp.MustCompile(fmt.Sprintf("^(?:%s)$", *volumeWhitelist)),
-		volumeBlacklistPattern: regexp.MustCompile(fmt.Sprintf("^(?:%s)$", *volumeBlacklist)),
 	}, nil
 }
 

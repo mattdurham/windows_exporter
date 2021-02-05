@@ -4,14 +4,15 @@ package collector
 
 import (
 	"errors"
-
 	"github.com/StackExchange/wmi"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
 )
 
 func init() {
-	registerCollector("ad", NewADCollector)
+	registerCollector("ad", func() collectorBuilder {
+		return builderFunc(NewADCollector)
+	})
 }
 
 // A ADCollector is a Prometheus collector for WMI Win32_PerfRawData_DirectoryServices_DirectoryServices metrics

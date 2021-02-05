@@ -8,7 +8,9 @@ import (
 )
 
 func init() {
-	registerCollector("system", NewSystemCollector, "System")
+	registerCollector("system", func() collectorBuilder {
+		return builderFunc(NewSystemCollector)
+	}, "System")
 }
 
 // A SystemCollector is a Prometheus collector for WMI metrics

@@ -13,7 +13,9 @@ import (
 )
 
 func init() {
-	registerCollector("exchange", newExchangeCollector,
+	registerCollector("exchange", func() collectorBuilder {
+		return &ExchangeConfig{}
+	},
 		"MSExchange ADAccess Processes",
 		"MSExchangeTransport Queues",
 		"MSExchange HttpProxy",
@@ -68,6 +70,80 @@ type exchangeCollector struct {
 	enabledCollectors []string
 }
 
+type ExchangeConfig struct {
+	argExchangeListAllCollectors bool
+	argExchangeCollectorsEnabled string
+}
+
+func (c *ExchangeConfig) RegisterFlags(application *kingpin.Application) {
+
+	application.Flag(
+		"collectors.exchange.list",
+		"List the collectors along with their perflib object name/ids",
+	).BoolVar(&c.argExchangeListAllCollectors)
+
+	application.Flag(
+		"collectors.exchange.enabled",
+		"Comma-separated list of collectors to use. Defaults to all, if not specified.",
+	).Default("").StringVar(&c.argExchangeCollectorsEnabled)
+}
+
+func (c *ExchangeConfig) RegisterFlagsForLibrary(m map[string]string) {
+	_, exists := m["collectors.exchange.list"]
+	c.argExchangeListAllCollectors = exists
+
+	if argExchangeCollectorsEnabled, exists := m["collectors.exchange.enabled"]; exists == false {
+		argExchangeCollectorsEnabled = ""
+		c.argExchangeCollectorsEnabled = argExchangeCollectorsEnabled
+	} else {
+		c.argExchangeCollectorsEnabled = argExchangeCollectorsEnabled
+
+	}
+
+}
+
+func (c *ExchangeConfig) Build() (Collector, error) {
+
+	ec, error := newExchangeCollector()
+	if error != nil {
+		return nil, error
+	}
+	collectorDesc := map[string]string{
+		"ADAccessProcesses":   "[19108] MSExchange ADAccess Processes",
+		"TransportQueues":     "[20524] MSExchangeTransport Queues",
+		"HttpProxy":           "[36934] MSExchange HttpProxy",
+		"ActiveSync":          "[25138] MSExchange ActiveSync",
+		"AvailabilityService": "[24914] MSExchange Availability Service",
+		"OutlookWebAccess":    "[24618] MSExchange OWA",
+		"Autodiscover":        "[29240] MSExchange Autodiscover",
+		"WorkloadManagement":  "[19430] MSExchange WorkloadManagement Workloads",
+		"RpcClientAccess":     "[29336] MSExchange RpcClientAccess",
+	}
+
+	if c.argExchangeListAllCollectors {
+		fmt.Printf("%-32s %-32s\n", "Collector Name", "[PerfID] Perflib Object")
+		for _, cname := range exchangeAllCollectorNames {
+			fmt.Printf("%-32s %-32s\n", cname, collectorDesc[cname])
+		}
+		os.Exit(0)
+	}
+
+	if c.argExchangeCollectorsEnabled == "" {
+		for _, collectorName := range exchangeAllCollectorNames {
+			ec.enabledCollectors = append(ec.enabledCollectors, collectorName)
+		}
+	} else {
+		for _, collectorName := range strings.Split(c.argExchangeCollectorsEnabled, ",") {
+			if find(exchangeAllCollectorNames, collectorName) {
+				ec.enabledCollectors = append(ec.enabledCollectors, collectorName)
+			} else {
+				fmt.Errorf("Unknown exchange collector: %s", collectorName)
+			}
+		}
+	}
+	return ec, nil
+}
+
 var (
 	// All available collector functions
 	exchangeAllCollectorNames = []string{
@@ -81,20 +157,10 @@ var (
 		"WorkloadManagement",
 		"RpcClientAccess",
 	}
-
-	argExchangeListAllCollectors = kingpin.Flag(
-		"collectors.exchange.list",
-		"List the collectors along with their perflib object name/ids",
-	).Bool()
-
-	argExchangeCollectorsEnabled = kingpin.Flag(
-		"collectors.exchange.enabled",
-		"Comma-separated list of collectors to use. Defaults to all, if not specified.",
-	).Default("").String()
 )
 
 // newExchangeCollector returns a new Collector
-func newExchangeCollector() (Collector, error) {
+func newExchangeCollector() (*exchangeCollector, error) {
 
 	// desc creates a new prometheus description
 	desc := func(metricName string, description string, labels ...string) *prometheus.Desc {
@@ -146,40 +212,6 @@ func newExchangeCollector() (Collector, error) {
 		SyncCommandsPerSec:                      desc("activesync_sync_cmds_total", "Number of sync commands processed per second. Clients use this command to synchronize items within a folder"),
 
 		enabledCollectors: make([]string, 0, len(exchangeAllCollectorNames)),
-	}
-
-	collectorDesc := map[string]string{
-		"ADAccessProcesses":   "[19108] MSExchange ADAccess Processes",
-		"TransportQueues":     "[20524] MSExchangeTransport Queues",
-		"HttpProxy":           "[36934] MSExchange HttpProxy",
-		"ActiveSync":          "[25138] MSExchange ActiveSync",
-		"AvailabilityService": "[24914] MSExchange Availability Service",
-		"OutlookWebAccess":    "[24618] MSExchange OWA",
-		"Autodiscover":        "[29240] MSExchange Autodiscover",
-		"WorkloadManagement":  "[19430] MSExchange WorkloadManagement Workloads",
-		"RpcClientAccess":     "[29336] MSExchange RpcClientAccess",
-	}
-
-	if *argExchangeListAllCollectors {
-		fmt.Printf("%-32s %-32s\n", "Collector Name", "[PerfID] Perflib Object")
-		for _, cname := range exchangeAllCollectorNames {
-			fmt.Printf("%-32s %-32s\n", cname, collectorDesc[cname])
-		}
-		os.Exit(0)
-	}
-
-	if *argExchangeCollectorsEnabled == "" {
-		for _, collectorName := range exchangeAllCollectorNames {
-			c.enabledCollectors = append(c.enabledCollectors, collectorName)
-		}
-	} else {
-		for _, collectorName := range strings.Split(*argExchangeCollectorsEnabled, ",") {
-			if find(exchangeAllCollectorNames, collectorName) {
-				c.enabledCollectors = append(c.enabledCollectors, collectorName)
-			} else {
-				return nil, fmt.Errorf("Unknown exchange collector: %s", collectorName)
-			}
-		}
 	}
 
 	return &c, nil

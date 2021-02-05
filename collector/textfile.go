@@ -54,7 +54,9 @@ type textFileCollector struct {
 }
 
 func init() {
-	registerCollector("textfile", NewTextFileCollector)
+	registerCollector("textfile", func() collectorBuilder {
+		return builderFunc(NewTextFileCollector)
+	})
 }
 
 // NewTextFileCollector returns a new Collector exposing metrics read from files
