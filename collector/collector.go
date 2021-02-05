@@ -51,6 +51,13 @@ func getWindowsVersion() float64 {
 	return currentv_flt
 }
 
+// CollectorBuilder is the interface the registration has to implement.
+//   Separated into builder approach for running multiple collectors with different
+//	 config.
+//	 Use *RegisterFlags* when running as a standalone application, this sets up the configuration for a collector
+//	 Use *RegisterFlagsForLibrary* when creating an exporter as a library
+//   *Build* is used to create an instance of the collector
+//
 type collectorBuilder interface {
 	RegisterFlags(app *kingpin.Application)
 	Build() (Collector, error)
@@ -122,13 +129,6 @@ func getPerfQuery(collectors []string) string {
 	return strings.Join(parts, " ")
 }
 
-// Collector is the interface a collector has to implement.
-//   Separated into 4 distinct stages for usage as a library. You may want to run multiple collectors with different
-//	 config.
-//	 Use *RegisterFlags* when running as a standalone application, this sets up the configuration for a collector
-//	 Use *RegisterFlagsForLibrary* when creating an exporter as a library
-//   *Setup* is used to setup any validations or regexs that are needed
-//
 type Collector interface {
 	// Get new metrics and expose them via prometheus registry.
 	Collect(ctx *ScrapeContext, ch chan<- prometheus.Metric) (err error)
