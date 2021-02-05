@@ -66,13 +66,13 @@ type SMTPCollector struct {
 }
 
 type SMTPConfig struct {
-	serverWhitelist *string
-	serverBlacklist *string
+	serverWhitelist string
+	serverBlacklist string
 }
 
 func (c *SMTPConfig) RegisterFlags(application *kingpin.Application) {
-	c.serverWhitelist = application.Flag("collector.smtp.server-whitelist", "Regexp of virtual servers to whitelist. Server name must both match whitelist and not match blacklist to be included.").Default(".+").String()
-	c.serverBlacklist = application.Flag("collector.smtp.server-blacklist", "Regexp of virtual servers to blacklist. Server name must both match whitelist and not match blacklist to be included.").String()
+	application.Flag("collector.smtp.server-whitelist", "Regexp of virtual servers to whitelist. Server name must both match whitelist and not match blacklist to be included.").Default(".+").StringVar(&c.serverWhitelist)
+	application.Flag("collector.smtp.server-blacklist", "Regexp of virtual servers to blacklist. Server name must both match whitelist and not match blacklist to be included.").StringVar(&c.serverBlacklist)
 
 }
 
@@ -81,10 +81,10 @@ func (c *SMTPConfig) RegisterFlagsForLibrary(m map[string]string) {
 	if exists == false {
 		whiteList = ".+"
 	}
-	c.serverWhitelist = &whiteList
+	c.serverWhitelist = whiteList
 
 	blackList, exists := m["collector.smtp.server-blacklist"]
-	c.serverWhitelist = &blackList
+	c.serverWhitelist = blackList
 }
 
 func (c *SMTPConfig) Build() (Collector, error) {
@@ -93,8 +93,8 @@ func (c *SMTPConfig) Build() (Collector, error) {
 		return nil, err
 	}
 
-	sc.serverWhitelistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", *c.serverWhitelist))
-	sc.serverBlacklistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", *c.serverBlacklist))
+	sc.serverWhitelistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", c.serverWhitelist))
+	sc.serverBlacklistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", c.serverBlacklist))
 	return sc, nil
 }
 

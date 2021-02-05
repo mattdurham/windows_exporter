@@ -37,19 +37,19 @@ type NetworkCollector struct {
 }
 
 type NetworkCollectorConfig struct {
-	nicWhiteList *string
-	nicBlackList *string
+	nicWhiteList string
+	nicBlackList string
 }
 
 func (c *NetworkCollectorConfig) RegisterFlags(application *kingpin.Application) {
-	c.nicBlackList = application.Flag(
+	application.Flag(
 		"collector.net.nic-blacklist",
 		"Regexp of NIC:s to blacklist. NIC name must both match whitelist and not match blacklist to be included.",
-	).Default("").String()
-	c.nicWhiteList = application.Flag(
+	).Default("").StringVar(&c.nicBlackList)
+	application.Flag(
 		"collector.net.nic-whitelist",
 		"Regexp of NIC:s to whitelist. NIC name must both match whitelist and not match blacklist to be included.",
-	).Default(".+").String()
+	).Default(".+").StringVar(&c.nicWhiteList)
 }
 
 func (c *NetworkCollectorConfig) RegisterFlagsForLibrary(m map[string]string) {
@@ -57,19 +57,19 @@ func (c *NetworkCollectorConfig) RegisterFlagsForLibrary(m map[string]string) {
 	if exists == false {
 		nicBlackList = ""
 	}
-	c.nicBlackList = &nicBlackList
+	c.nicBlackList = nicBlackList
 
 	nicWhiteList, exists := m["collector.net.nic-whitelist"]
 	if exists == false {
 		nicWhiteList = ".+"
 	}
-	c.nicWhiteList = &nicWhiteList
+	c.nicWhiteList = nicWhiteList
 }
 
 func (c *NetworkCollectorConfig) Build() (Collector, error) {
 	nc := &NetworkCollector{}
-	nc.nicWhitelistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", *c.nicWhiteList))
-	nc.nicBlacklistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", *c.nicBlackList))
+	nc.nicWhitelistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", c.nicWhiteList))
+	nc.nicBlacklistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", c.nicBlackList))
 	return nc, nil
 }
 

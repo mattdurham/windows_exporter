@@ -72,18 +72,18 @@ type DFSRCollector struct {
 }
 
 type DFRSConfig struct {
-	dfsrEnabledCollectors *string
+	dfsrEnabledCollectors string
 }
 
 func (config *DFRSConfig) RegisterFlags(application *kingpin.Application) {
-	config.dfsrEnabledCollectors = application.Flag("collectors.dfsr.sources-enabled", "Comma-seperated list of DFSR Perflib sources to use.").Default("connection,folder,volume").String()
+	application.Flag("collectors.dfsr.sources-enabled", "Comma-seperated list of DFSR Perflib sources to use.").Default("connection,folder,volume").StringVar(&config.dfsrEnabledCollectors)
 }
 
 func (config *DFRSConfig) RegisterFlagsForLibrary(m map[string]string) {
 	if dfrs, found := m["collectors.dfsr.sources-enabled"]; found == false {
 		dfrs = "connection,folder,volume"
 	} else {
-		config.dfsrEnabledCollectors = &dfrs
+		config.dfsrEnabledCollectors = dfrs
 
 	}
 }
@@ -96,12 +96,12 @@ func (config *DFRSConfig) Build() (Collector, error) {
 
 	// Perflib sources are dynamic, depending on the enabled child collectors
 	var perflibDependencies []string
-	for _, source := range expandEnabledChildCollectors(*config.dfsrEnabledCollectors) {
+	for _, source := range expandEnabledChildCollectors(config.dfsrEnabledCollectors) {
 		perflibDependencies = append(perflibDependencies, dfsrGetPerfObjectName(source))
 	}
 	const subsystem = "dfsr"
 
-	enabled := expandEnabledChildCollectors(*config.dfsrEnabledCollectors)
+	enabled := expandEnabledChildCollectors(config.dfsrEnabledCollectors)
 	perfCounters := make([]string, 0, len(enabled))
 	for _, c := range enabled {
 		perfCounters = append(perfCounters, dfsrGetPerfObjectName(c))

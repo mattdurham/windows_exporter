@@ -39,19 +39,19 @@ type LogicalDiskCollector struct {
 }
 
 type LogicalDiskConfig struct {
-	volumeWhiteList *string
-	volumeBlackList *string
+	volumeWhiteList string
+	volumeBlackList string
 }
 
 func (c *LogicalDiskConfig) RegisterFlags(application *kingpin.Application) {
-	c.volumeWhiteList = application.Flag(
+	application.Flag(
 		"collector.logical_disk.volume-whitelist",
 		"Regexp of volumes to whitelist. Volume name must both match whitelist and not match blacklist to be included.",
-	).Default(".+").String()
-	c.volumeBlackList = application.Flag(
+	).Default(".+").StringVar(&c.volumeWhiteList )
+	application.Flag(
 		"collector.logical_disk.volume-blacklist",
 		"Regexp of volumes to blacklist. Volume name must both match whitelist and not match blacklist to be included.",
-	).Default("").String()
+	).Default("").StringVar(&c.volumeBlackList)
 }
 
 func (c *LogicalDiskConfig) RegisterFlagsForLibrary(m map[string]string) {
@@ -59,12 +59,12 @@ func (c *LogicalDiskConfig) RegisterFlagsForLibrary(m map[string]string) {
 	if exists == false {
 		whitelist = ".+"
 	}
-	c.volumeWhiteList = &whitelist
+	c.volumeWhiteList = whitelist
 	blacklist, exists := m["collector.logical_disk.volume-blacklist"]
 	if exists == false {
 		blacklist = ""
 	}
-	c.volumeBlackList = &blacklist
+	c.volumeBlackList = blacklist
 }
 
 func (c *LogicalDiskConfig) Build() (Collector, error) {
@@ -72,8 +72,8 @@ func (c *LogicalDiskConfig) Build() (Collector, error) {
 	if err != nil {
 		return nil, err
 	}
-	lc.volumeWhitelistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", *c.volumeWhiteList))
-	lc.volumeBlacklistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", *c.volumeBlackList))
+	lc.volumeWhitelistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", c.volumeWhiteList))
+	lc.volumeBlacklistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", c.volumeBlackList))
 	return lc, nil
 }
 

@@ -187,17 +187,17 @@ type IISCollector struct {
 }
 
 type IISConfig struct {
-	siteWhitelist *string
-	siteBlacklist *string
-	appWhitelist  *string
-	appBlacklist  *string
+	siteWhitelist string
+	siteBlacklist string
+	appWhitelist  string
+	appBlacklist  string
 }
 
 func (c *IISConfig) RegisterFlags(application *kingpin.Application) {
-	c.siteWhitelist = application.Flag("collector.iis.site-whitelist", "Regexp of sites to whitelist. Site name must both match whitelist and not match blacklist to be included.").Default(".+").String()
-	c.siteBlacklist = application.Flag("collector.iis.site-blacklist", "Regexp of sites to blacklist. Site name must both match whitelist and not match blacklist to be included.").String()
-	c.appWhitelist = application.Flag("collector.iis.app-whitelist", "Regexp of apps to whitelist. App name must both match whitelist and not match blacklist to be included.").Default(".+").String()
-	c.appBlacklist = application.Flag("collector.iis.app-blacklist", "Regexp of apps to blacklist. App name must both match whitelist and not match blacklist to be included.").String()
+	application.Flag("collector.iis.site-whitelist", "Regexp of sites to whitelist. Site name must both match whitelist and not match blacklist to be included.").Default(".+").StringVar(&c.siteWhitelist)
+	application.Flag("collector.iis.site-blacklist", "Regexp of sites to blacklist. Site name must both match whitelist and not match blacklist to be included.").StringVar(&c.siteBlacklist)
+	application.Flag("collector.iis.app-whitelist", "Regexp of apps to whitelist. App name must both match whitelist and not match blacklist to be included.").Default(".+").StringVar(&c.appWhitelist)
+	application.Flag("collector.iis.app-blacklist", "Regexp of apps to blacklist. App name must both match whitelist and not match blacklist to be included.").StringVar(&c.appBlacklist)
 }
 
 func (c *IISConfig) RegisterFlagsForLibrary(m map[string]string) {
@@ -205,18 +205,18 @@ func (c *IISConfig) RegisterFlagsForLibrary(m map[string]string) {
 	if exists == false {
 		siteWhiteList = ".+"
 	}
-	c.siteWhitelist = &siteWhiteList
+	c.siteWhitelist = siteWhiteList
 
 	appWhitelist, exists := m["collector.iis.app-whitelist"]
 	if exists == false {
 		appWhitelist = ".+"
 	}
-	c.appWhitelist = &appWhitelist
+	c.appWhitelist = appWhitelist
 
 	siteBlackList := m["collector.iis.site-blacklist"]
-	c.siteBlacklist = &siteBlackList
+	c.siteBlacklist = siteBlackList
 	appBlackList := m["collector.iis.app-blacklist"]
-	c.appBlacklist = &appBlackList
+	c.appBlacklist = appBlackList
 }
 
 func (c *IISConfig) Build() (Collector, error) {
@@ -224,11 +224,11 @@ func (c *IISConfig) Build() (Collector, error) {
 	if err != nil {
 		return nil, err
 	}
-	ic.siteWhitelistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", *c.siteWhitelist))
-	ic.siteBlacklistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", *c.siteBlacklist))
+	ic.siteWhitelistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", c.siteWhitelist))
+	ic.siteBlacklistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", c.siteBlacklist))
 
-	ic.appWhitelistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", *c.appWhitelist))
-	ic.appBlacklistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", *c.appBlacklist))
+	ic.appWhitelistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", c.appWhitelist))
+	ic.appBlacklistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", c.appBlacklist))
 	return ic, nil
 }
 

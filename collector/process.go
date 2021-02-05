@@ -38,19 +38,19 @@ type processCollector struct {
 	processWhitelistPattern *regexp.Regexp
 	processBlacklistPattern *regexp.Regexp
 
-	processWhiteList *string
-	processBlackList *string
+	processWhiteList string
+	processBlackList string
 }
 
 func (c *processCollector) RegisterFlags(application kingpin.Application) {
-	c.processWhiteList = application.Flag(
+	application.Flag(
 		"collector.process.whitelist",
 		"Regexp of processes to include. Process name must both match whitelist and not match blacklist to be included.",
-	).Default(".*").String()
-	c.processBlackList = application.Flag(
+	).Default(".*").StringVar(&c.processWhiteList)
+	application.Flag(
 		"collector.process.blacklist",
 		"Regexp of processes to exclude. Process name must both match whitelist and not match blacklist to be included.",
-	).Default("").String()
+	).Default("").StringVar(&c.processBlackList)
 }
 
 func (c *processCollector) RegisterFlagsForLibrary(m map[string]string) {
@@ -58,21 +58,21 @@ func (c *processCollector) RegisterFlagsForLibrary(m map[string]string) {
 	if exists == false {
 		processWhiteList = ".*"
 	}
-	c.processWhiteList = &processWhiteList
+	c.processWhiteList = processWhiteList
 
 	processBlackList, exists := m["collector.process.blacklist"]
 	if exists == false {
 		processBlackList = ""
 	}
-	c.processBlackList = &processBlackList
+	c.processBlackList = processBlackList
 }
 
 func (c *processCollector) Setup() {
-	if *c.processWhiteList == ".*" && *c.processBlackList == "" {
+	if c.processWhiteList == ".*" && c.processBlackList == "" {
 		log.Warn("No filters specified for process collector. This will generate a very large number of metrics!")
 	}
-	c.processWhitelistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", *c.processWhiteList))
-	c.processBlacklistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", *c.processBlackList))
+	c.processWhitelistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", c.processWhiteList))
+	c.processBlacklistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", c.processBlackList))
 }
 
 // NewProcessCollector ...

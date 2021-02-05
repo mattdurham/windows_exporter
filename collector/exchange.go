@@ -71,32 +71,32 @@ type exchangeCollector struct {
 }
 
 type ExchangeConfig struct {
-	argExchangeListAllCollectors *bool
-	argExchangeCollectorsEnabled *string
+	argExchangeListAllCollectors bool
+	argExchangeCollectorsEnabled string
 }
 
 func (c *ExchangeConfig) RegisterFlags(application *kingpin.Application) {
 
-	c.argExchangeListAllCollectors = application.Flag(
+	application.Flag(
 		"collectors.exchange.list",
 		"List the collectors along with their perflib object name/ids",
-	).Bool()
+	).BoolVar(&c.argExchangeListAllCollectors)
 
-	c.argExchangeCollectorsEnabled = application.Flag(
+	application.Flag(
 		"collectors.exchange.enabled",
 		"Comma-separated list of collectors to use. Defaults to all, if not specified.",
-	).Default("").String()
+	).Default("").StringVar(&c.argExchangeCollectorsEnabled)
 }
 
 func (c *ExchangeConfig) RegisterFlagsForLibrary(m map[string]string) {
 	_, exists := m["collectors.exchange.list"]
-	c.argExchangeListAllCollectors = &exists
+	c.argExchangeListAllCollectors = exists
 
 	if argExchangeCollectorsEnabled, exists := m["collectors.exchange.enabled"]; exists == false {
 		argExchangeCollectorsEnabled = ""
-		c.argExchangeCollectorsEnabled = &argExchangeCollectorsEnabled
+		c.argExchangeCollectorsEnabled = argExchangeCollectorsEnabled
 	} else {
-		c.argExchangeCollectorsEnabled = &argExchangeCollectorsEnabled
+		c.argExchangeCollectorsEnabled = argExchangeCollectorsEnabled
 
 	}
 
@@ -120,7 +120,7 @@ func (c *ExchangeConfig) Build() (Collector, error) {
 		"RpcClientAccess":     "[29336] MSExchange RpcClientAccess",
 	}
 
-	if *c.argExchangeListAllCollectors {
+	if c.argExchangeListAllCollectors {
 		fmt.Printf("%-32s %-32s\n", "Collector Name", "[PerfID] Perflib Object")
 		for _, cname := range exchangeAllCollectorNames {
 			fmt.Printf("%-32s %-32s\n", cname, collectorDesc[cname])
@@ -128,12 +128,12 @@ func (c *ExchangeConfig) Build() (Collector, error) {
 		os.Exit(0)
 	}
 
-	if *c.argExchangeCollectorsEnabled == "" {
+	if c.argExchangeCollectorsEnabled == "" {
 		for _, collectorName := range exchangeAllCollectorNames {
 			ec.enabledCollectors = append(ec.enabledCollectors, collectorName)
 		}
 	} else {
-		for _, collectorName := range strings.Split(*c.argExchangeCollectorsEnabled, ",") {
+		for _, collectorName := range strings.Split(c.argExchangeCollectorsEnabled, ",") {
 			if find(exchangeAllCollectorNames, collectorName) {
 				ec.enabledCollectors = append(ec.enabledCollectors, collectorName)
 			} else {
