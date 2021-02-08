@@ -90,7 +90,7 @@ func (c *SMTPCollector) Setup() {
 
 }
 
-func NewSMTPCollector() (*SMTPCollector, error) {
+func NewSMTPCollector() (Collector, error) {
 
 	const subsystem = "smtp"
 

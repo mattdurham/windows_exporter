@@ -149,7 +149,7 @@ var (
 )
 
 // newExchangeCollector returns a new Collector
-func newExchangeCollector() (*exchangeCollector, error) {
+func newExchangeCollector() (Collector, error) {
 
 	// desc creates a new prometheus description
 	desc := func(metricName string, description string, labels ...string) *prometheus.Desc {

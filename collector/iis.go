@@ -215,7 +215,7 @@ func (c *IISCollector) Setup() {
 }
 
 // NewIISCollector ...
-func NewIISCollector() (*IISCollector, error) {
+func NewIISCollector() (Collector, error) {
 	const subsystem = "iis"
 
 	buildIIS := &IISCollector{

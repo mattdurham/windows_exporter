@@ -75,7 +75,7 @@ func (c *LogicalDiskCollector) Setup(){
 }
 
 // NewLogicalDiskCollector ...
-func NewLogicalDiskCollector() (*LogicalDiskCollector, error) {
+func NewLogicalDiskCollector() (Collector, error) {
 
 	const subsystem = "logical_disk"
 
