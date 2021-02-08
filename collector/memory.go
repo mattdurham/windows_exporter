@@ -8,7 +8,6 @@ package collector
 import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
-	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 func init() {
@@ -51,19 +50,6 @@ type MemoryCollector struct {
 	TransitionFaultsTotal           *prometheus.Desc
 	TransitionPagesRepurposedTotal  *prometheus.Desc
 	WriteCopiesTotal                *prometheus.Desc
-}
-
-func (c *MemoryCollector) RegisterFlags(app *kingpin.Application) {
-}
-
-func (c *MemoryCollector) Setup() {
-}
-
-func (c *MemoryCollector) RegisterFlagsForLibrary(m map[string]string) {
-}
-
-func (c *MemoryCollector) GetPerfCounterDependencies() []string {
-	return []string{}
 }
 
 // NewMemoryCollector ...

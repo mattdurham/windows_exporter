@@ -6,7 +6,6 @@ import (
 	"errors"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
-	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 func init() {
@@ -23,15 +22,6 @@ type TimeCollector struct {
 	NTPRoundtripDelay                *prometheus.Desc
 	NTPServerIncomingRequestsTotal   *prometheus.Desc
 	NTPServerOutgoingResponsesTotal  *prometheus.Desc
-}
-
-func (c *TimeCollector) RegisterFlags(app *kingpin.Application) {
-}
-
-func (c *TimeCollector) Setup() {
-}
-
-func (c *TimeCollector) RegisterFlagsForLibrary(m map[string]string) {
 }
 
 func (c *TimeCollector) GetPerfCounterDependencies() []string {

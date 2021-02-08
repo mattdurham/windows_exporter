@@ -4,7 +4,6 @@ package collector
 
 import (
 	"github.com/prometheus/client_golang/prometheus"
-	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 func init() {
@@ -25,15 +24,6 @@ type adfsCollector struct {
 	passwordChangeSucceeded          *prometheus.Desc
 	tokenRequests                    *prometheus.Desc
 	windowsIntegratedAuthentications *prometheus.Desc
-}
-
-func (c *adfsCollector) RegisterFlags(app *kingpin.Application) {
-}
-
-func (c *adfsCollector) Setup() {
-}
-
-func (c *adfsCollector) RegisterFlagsForLibrary(m map[string]string) {
 }
 
 func (c *adfsCollector) GetPerfCounterDependencies() []string {

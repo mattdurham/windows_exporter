@@ -4,7 +4,6 @@ import (
 	"github.com/StackExchange/wmi"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
-	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 func init() {
@@ -18,19 +17,6 @@ type thermalZoneCollector struct {
 	PercentPassiveLimit *prometheus.Desc
 	Temperature         *prometheus.Desc
 	ThrottleReasons     *prometheus.Desc
-}
-
-func (c *thermalZoneCollector) RegisterFlags(app *kingpin.Application) {
-}
-
-func (c *thermalZoneCollector) Setup() {
-}
-
-func (c *thermalZoneCollector) RegisterFlagsForLibrary(m map[string]string) {
-}
-
-func (c *thermalZoneCollector) GetPerfCounterDependencies() []string {
-	return []string{}
 }
 
 // NewThermalZoneCollector ...

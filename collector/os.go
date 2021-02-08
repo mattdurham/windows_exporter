@@ -4,7 +4,6 @@ package collector
 
 import (
 	"errors"
-	"gopkg.in/alecthomas/kingpin.v2"
 	"time"
 
 	"github.com/StackExchange/wmi"
@@ -33,19 +32,6 @@ type OSCollector struct {
 	VisibleMemoryBytes      *prometheus.Desc
 	Time                    *prometheus.Desc
 	Timezone                *prometheus.Desc
-}
-
-func (c *OSCollector) RegisterFlags(app *kingpin.Application) {
-}
-
-func (c *OSCollector) Setup() {
-}
-
-func (c *OSCollector) RegisterFlagsForLibrary(m map[string]string) {
-}
-
-func (c *OSCollector) GetPerfCounterDependencies() []string {
-	return []string{}
 }
 
 // NewOSCollector ...

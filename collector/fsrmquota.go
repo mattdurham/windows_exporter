@@ -4,7 +4,6 @@ import (
 	"github.com/StackExchange/wmi"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
-	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 func init() {
@@ -25,19 +24,6 @@ type FSRMQuotaCollector struct {
 	MatchesTemplate *prometheus.Desc
 	SoftLimit       *prometheus.Desc
 	Template        *prometheus.Desc
-}
-
-func (c *FSRMQuotaCollector) RegisterFlags(app *kingpin.Application) {
-}
-
-func (c *FSRMQuotaCollector) Setup() {
-}
-
-func (c *FSRMQuotaCollector) RegisterFlagsForLibrary(m map[string]string) {
-}
-
-func (c *FSRMQuotaCollector) GetPerfCounterDependencies() []string {
-	return []string{}
 }
 
 func newFSRMQuotaCollector() (Collector, error) {

@@ -6,7 +6,6 @@ import (
 	"github.com/StackExchange/wmi"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
-	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 func init() {
@@ -32,19 +31,6 @@ type NETFramework_NETCLRMemoryCollector struct {
 	PromotedFinalizationMemoryfromGen0 *prometheus.Desc
 	PromotedMemoryfromGen0             *prometheus.Desc
 	PromotedMemoryfromGen1             *prometheus.Desc
-}
-
-func (c *NETFramework_NETCLRMemoryCollector) RegisterFlags(app *kingpin.Application) {
-}
-
-func (c *NETFramework_NETCLRMemoryCollector) Setup() {
-}
-
-func (c *NETFramework_NETCLRMemoryCollector) RegisterFlagsForLibrary(m map[string]string) {
-}
-
-func (c *NETFramework_NETCLRMemoryCollector) GetPerfCounterDependencies() []string {
-	return []string{}
 }
 
 // NewNETFramework_NETCLRMemoryCollector ...

@@ -6,7 +6,6 @@ import (
 	"github.com/StackExchange/wmi"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
-	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 func init() {
@@ -23,19 +22,6 @@ type NETFramework_NETCLRRemotingCollector struct {
 	ContextProxies            *prometheus.Desc
 	Contexts                  *prometheus.Desc
 	TotalRemoteCalls          *prometheus.Desc
-}
-
-func (c *NETFramework_NETCLRRemotingCollector) RegisterFlags(app *kingpin.Application) {
-}
-
-func (c *NETFramework_NETCLRRemotingCollector) Setup() {
-}
-
-func (c *NETFramework_NETCLRRemotingCollector) RegisterFlagsForLibrary(m map[string]string) {
-}
-
-func (c *NETFramework_NETCLRRemotingCollector) GetPerfCounterDependencies() []string {
-	return []string{}
 }
 
 // NewNETFramework_NETCLRRemotingCollector ...

@@ -76,7 +76,9 @@ func Build(collector string, app *kingpin.Application) (Collector, error) {
 	if err != nil {
 		return nil, err
 	}
-	c.RegisterFlags(app)
+	if v, ok := c.(CollectorConfig) ; ok {
+		v.RegisterFlags(app)
+	}
 	return c, err
 }
 
@@ -89,7 +91,9 @@ func BuildForLibrary(collector string, settings map[string]string) (Collector, e
 	if err != nil {
 		return nil, err
 	}
-	c.RegisterFlagsForLibrary(settings)
+	if v, ok := c.(CollectorConfig) ; ok {
+		v.RegisterFlagsForLibrary(settings)
+	}
 	return c, err
 }
 
@@ -105,7 +109,9 @@ func addPerfCounterDependencies(perfCounterNames []string) string {
 func getPerfQuery(collectors []Collector) string {
 	parts := make([]string, 0, len(collectors))
 	for _, c := range collectors {
-		parts = append(parts, addPerfCounterDependencies(c.GetPerfCounterDependencies()))
+		if v, ok := c.(CollectorPerf) ; ok {
+			parts = append(parts, addPerfCounterDependencies(v.GetPerfCounterDependencies()))
+		}
 	}
 	return strings.Join(parts, " ")
 }
@@ -113,27 +119,16 @@ func getPerfQuery(collectors []Collector) string {
 type Collector interface {
 	// Get new metrics and expose them via prometheus registry.
 	Collect(ctx *ScrapeContext, ch chan<- prometheus.Metric) (err error)
+}
+
+type CollectorConfig interface {
 	RegisterFlags(app *kingpin.Application)
 	Setup()
 	RegisterFlagsForLibrary(map[string]string)
+}
+
+type CollectorPerf interface {
 	GetPerfCounterDependencies() []string
-}
-
-type CollectorBase struct {
-
-}
-
-func (c CollectorBase) RegisterFlags(app *kingpin.Application) {
-}
-
-func (c CollectorBase) Setup() {
-}
-
-func (c CollectorBase) RegisterFlagsForLibrary(m map[string]string) {
-}
-
-func (c CollectorBase) GetPerfCounterDependencies() []string {
-	return []string{}
 }
 
 // Collectors is the set of supported collectors.

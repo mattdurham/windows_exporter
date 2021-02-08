@@ -3,7 +3,6 @@
 package collector
 
 import (
-	"gopkg.in/alecthomas/kingpin.v2"
 	"strings"
 
 	"github.com/StackExchange/wmi"
@@ -113,19 +112,6 @@ type HyperVCollector struct {
 	VMNetworkDroppedPacketsOutgoing *prometheus.Desc
 	VMNetworkPacketsReceived        *prometheus.Desc
 	VMNetworkPacketsSent            *prometheus.Desc
-}
-
-func (c *HyperVCollector) RegisterFlags(app *kingpin.Application) {
-}
-
-func (c *HyperVCollector) Setup() {
-}
-
-func (c *HyperVCollector) RegisterFlagsForLibrary(m map[string]string) {
-}
-
-func (c *HyperVCollector) GetPerfCounterDependencies() []string {
-	return []string{}
 }
 
 // NewHyperVCollector ...

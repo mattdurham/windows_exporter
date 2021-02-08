@@ -191,9 +191,6 @@ type IISCollector struct {
 	appBlacklist  string
 }
 
-func (c *IISCollector) GetPerfCounterDependencies() []string {
-	return []string{}
-}
 
 func (c *IISCollector) RegisterFlags(application *kingpin.Application) {
 	application.Flag("collector.iis.site-whitelist", "Regexp of sites to whitelist. Site name must both match whitelist and not match blacklist to be included.").Default(".+").StringVar(&c.siteWhitelist)

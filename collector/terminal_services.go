@@ -4,7 +4,6 @@ package collector
 
 import (
 	"errors"
-	"gopkg.in/alecthomas/kingpin.v2"
 	"strings"
 
 	"github.com/StackExchange/wmi"
@@ -66,15 +65,6 @@ type TerminalServicesCollector struct {
 	VirtualBytesPeak            *prometheus.Desc
 	WorkingSet                  *prometheus.Desc
 	WorkingSetPeak              *prometheus.Desc
-}
-
-func (c *TerminalServicesCollector) RegisterFlags(app *kingpin.Application) {
-}
-
-func (c *TerminalServicesCollector) Setup() {
-}
-
-func (c *TerminalServicesCollector) RegisterFlagsForLibrary(m map[string]string) {
 }
 
 func (c *TerminalServicesCollector) GetPerfCounterDependencies() []string {

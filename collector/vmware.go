@@ -7,7 +7,6 @@ import (
 	"github.com/StackExchange/wmi"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
-	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 func init() {
@@ -38,19 +37,6 @@ type VmwareCollector struct {
 	CpuTimeTotal          *prometheus.Desc
 	EffectiveVMSpeedMHz   *prometheus.Desc
 	HostProcessorSpeedMHz *prometheus.Desc
-}
-
-func (c *VmwareCollector) RegisterFlags(app *kingpin.Application) {
-}
-
-func (c *VmwareCollector) Setup() {
-}
-
-func (c *VmwareCollector) RegisterFlagsForLibrary(m map[string]string) {
-}
-
-func (c *VmwareCollector) GetPerfCounterDependencies() []string {
-	return []string{}
 }
 
 // NewVmwareCollector constructs a new VmwareCollector

@@ -230,7 +230,9 @@ func loadCollectors(list string, app *kingpin.Application) (map[string]collector
 		if err != nil {
 			return nil, err
 		}
-		c.Setup()
+		if v, ok := c.(collector.CollectorConfig) ; ok {
+			v.Setup()
+		}
 		collectors[name] = c
 	}
 
@@ -245,7 +247,9 @@ func loadCollectorsForLibrary(list string, config map[string]string) (map[string
 		if err != nil {
 			return nil, err
 		}
-		c.Setup()
+		if v, ok := c.(collector.CollectorConfig) ; ok {
+			v.Setup()
+		}
 		collectors[name] = c
 	}
 

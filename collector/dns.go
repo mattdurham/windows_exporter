@@ -7,7 +7,6 @@ import (
 	"github.com/StackExchange/wmi"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
-	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 func init() {
@@ -42,18 +41,7 @@ type DNSCollector struct {
 	UnmatchedResponsesReceived    *prometheus.Desc
 }
 
-func (c *DNSCollector) RegisterFlags(app *kingpin.Application) {
-}
 
-func (c *DNSCollector) Setup() {
-}
-
-func (c *DNSCollector) RegisterFlagsForLibrary(m map[string]string) {
-}
-
-func (c *DNSCollector) GetPerfCounterDependencies() []string {
-	return []string{}
-}
 
 // NewDNSCollector ...
 func NewDNSCollector() (Collector, error) {

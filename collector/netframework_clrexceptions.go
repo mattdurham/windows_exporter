@@ -6,7 +6,6 @@ import (
 	"github.com/StackExchange/wmi"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
-	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 func init() {
@@ -21,19 +20,6 @@ type NETFramework_NETCLRExceptionsCollector struct {
 	NumberofFilters      *prometheus.Desc
 	NumberofFinallys     *prometheus.Desc
 	ThrowToCatchDepth    *prometheus.Desc
-}
-
-func (c *NETFramework_NETCLRExceptionsCollector) RegisterFlags(app *kingpin.Application) {
-}
-
-func (c *NETFramework_NETCLRExceptionsCollector) Setup() {
-}
-
-func (c *NETFramework_NETCLRExceptionsCollector) RegisterFlagsForLibrary(m map[string]string) {
-}
-
-func (c *NETFramework_NETCLRExceptionsCollector) GetPerfCounterDependencies() []string {
-	return []string{}
 }
 
 // NewNETFramework_NETCLRExceptionsCollector ...

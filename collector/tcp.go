@@ -5,7 +5,6 @@ package collector
 import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
-	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 func init() {
@@ -25,15 +24,6 @@ type TCPCollector struct {
 	SegmentsReceivedTotal      *prometheus.Desc
 	SegmentsRetransmittedTotal *prometheus.Desc
 	SegmentsSentTotal          *prometheus.Desc
-}
-
-func (c *TCPCollector) RegisterFlags(app *kingpin.Application) {
-}
-
-func (c *TCPCollector) Setup() {
-}
-
-func (c *TCPCollector) RegisterFlagsForLibrary(m map[string]string) {
 }
 
 func (c *TCPCollector) GetPerfCounterDependencies() []string {

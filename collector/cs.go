@@ -7,7 +7,6 @@ import (
 	"github.com/StackExchange/wmi"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
-	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 func init() {
@@ -21,19 +20,6 @@ type CSCollector struct {
 	PhysicalMemoryBytes *prometheus.Desc
 	LogicalProcessors   *prometheus.Desc
 	Hostname            *prometheus.Desc
-}
-
-func (c *CSCollector) RegisterFlags(app *kingpin.Application) {
-}
-
-func (c *CSCollector) Setup() {
-}
-
-func (c *CSCollector) RegisterFlagsForLibrary(m map[string]string) {
-}
-
-func (c *CSCollector) GetPerfCounterDependencies() []string {
-	return []string{}
 }
 
 // NewCSCollector ...

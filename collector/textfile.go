@@ -53,19 +53,6 @@ type textFileCollector struct {
 	mtime *float64
 }
 
-func (c *textFileCollector) RegisterFlags(app *kingpin.Application) {
-}
-
-func (c *textFileCollector) Setup() {
-}
-
-func (c *textFileCollector) RegisterFlagsForLibrary(m map[string]string) {
-}
-
-func (c *textFileCollector) GetPerfCounterDependencies() []string {
-	return []string{}
-}
-
 func init() {
 	registerCollector("textfile", func() (Collector, error) {
 		return NewTextFileCollector()

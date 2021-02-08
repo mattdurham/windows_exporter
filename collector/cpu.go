@@ -22,15 +22,6 @@ type cpuCollectorBasic struct {
 	DPCsTotal          *prometheus.Desc
 }
 
-func (c *cpuCollectorBasic) RegisterFlags(app *kingpin.Application) {
-}
-
-func (c *cpuCollectorBasic) Setup() {
-}
-
-func (c *cpuCollectorBasic) RegisterFlagsForLibrary(m map[string]string) {
-}
-
 func (c *cpuCollectorBasic) GetPerfCounterDependencies() []string {
 	// See below for 6.05 magic value
 	if getWindowsVersion() > 6.05 {

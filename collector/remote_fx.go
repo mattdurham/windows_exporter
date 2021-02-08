@@ -3,7 +3,6 @@
 package collector
 
 import (
-	"gopkg.in/alecthomas/kingpin.v2"
 	"strings"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -42,15 +41,6 @@ type RemoteFxCollector struct {
 	InputFramesPerSecond                        *prometheus.Desc
 	OutputFramesPerSecond                       *prometheus.Desc
 	SourceFramesPerSecond                       *prometheus.Desc
-}
-
-func (c *RemoteFxCollector) RegisterFlags(app *kingpin.Application) {
-}
-
-func (c *RemoteFxCollector) Setup() {
-}
-
-func (c *RemoteFxCollector) RegisterFlagsForLibrary(m map[string]string) {
 }
 
 func (c *RemoteFxCollector) GetPerfCounterDependencies() []string {

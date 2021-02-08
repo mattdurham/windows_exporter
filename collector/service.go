@@ -45,10 +45,6 @@ func (c *serviceCollector) RegisterFlagsForLibrary(m map[string]string) {
 	c.QueryWhereClause = getValueFromMapWithDefault(m,"collector.service.services-where", "" )
 }
 
-func (c *serviceCollector) GetPerfCounterDependencies() []string {
-	return []string{}
-}
-
 // NewserviceCollector ...
 func NewserviceCollector() (Collector, error) {
 	const subsystem = "service"
