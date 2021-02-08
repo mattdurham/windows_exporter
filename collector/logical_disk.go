@@ -34,10 +34,10 @@ type LogicalDiskCollector struct {
 	WriteLatency     *prometheus.Desc
 	ReadWriteLatency *prometheus.Desc
 
-	volumeWhitelistPattern *regexp.Regexp
-	volumeBlacklistPattern *regexp.Regexp
+	VolumeWhitelistPattern *regexp.Regexp
+	VolumeBlacklistPattern *regexp.Regexp
 
-	volumeWhiteList string
+	VolumeWhiteList string
 	volumeBlackList string
 }
 
@@ -49,7 +49,7 @@ func (c *LogicalDiskCollector) RegisterFlags(application *kingpin.Application) {
 	application.Flag(
 		"collector.logical_disk.volume-whitelist",
 		"Regexp of volumes to whitelist. Volume name must both match whitelist and not match blacklist to be included.",
-	).Default(".+").StringVar(&c.volumeWhiteList )
+	).Default(".+").StringVar(&c.VolumeWhiteList)
 	application.Flag(
 		"collector.logical_disk.volume-blacklist",
 		"Regexp of volumes to blacklist. Volume name must both match whitelist and not match blacklist to be included.",
@@ -57,21 +57,13 @@ func (c *LogicalDiskCollector) RegisterFlags(application *kingpin.Application) {
 }
 
 func (c *LogicalDiskCollector) RegisterFlagsForLibrary(m map[string]string) {
-	whitelist, exists := m["collector.logical_disk.volume-whitelist"]
-	if exists == false {
-		whitelist = ".+"
-	}
-	c.volumeWhiteList = whitelist
-	blacklist, exists := m["collector.logical_disk.volume-blacklist"]
-	if exists == false {
-		blacklist = ""
-	}
-	c.volumeBlackList = blacklist
+	c.VolumeWhiteList = getValueFromMapWithDefault(m,"collector.logical_disk.volume-whitelist",".+")
+	c.volumeBlackList = getValueFromMapWithDefault(m, "collector.logical_disk.volume-blacklist","")
 }
 
 func (c *LogicalDiskCollector) Setup(){
-	c.volumeWhitelistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", c.volumeWhiteList))
-	c.volumeBlacklistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", c.volumeBlackList))
+	c.VolumeWhitelistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", c.VolumeWhiteList))
+	c.VolumeBlacklistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", c.volumeBlackList))
 }
 
 // NewLogicalDiskCollector ...
@@ -219,8 +211,8 @@ func (c *LogicalDiskCollector) collect(ctx *ScrapeContext, ch chan<- prometheus.
 
 	for _, volume := range dst {
 		if volume.Name == "_Total" ||
-			c.volumeBlacklistPattern.MatchString(volume.Name) ||
-			!c.volumeWhitelistPattern.MatchString(volume.Name) {
+			c.VolumeBlacklistPattern.MatchString(volume.Name) ||
+			!c.VolumeWhitelistPattern.MatchString(volume.Name) {
 			continue
 		}
 
