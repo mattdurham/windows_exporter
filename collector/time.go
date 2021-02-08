@@ -6,12 +6,13 @@ import (
 	"errors"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 func init() {
-	registerCollector("time", func() CollectorBuilder {
-		return builderFunc(newTimeCollector)
-	}, "Windows Time Service")
+	registerCollector("time", func() (Collector, error) {
+		return newTimeCollector()
+	})
 }
 
 // TimeCollector is a Prometheus collector for Perflib counter metrics
@@ -22,6 +23,19 @@ type TimeCollector struct {
 	NTPRoundtripDelay                *prometheus.Desc
 	NTPServerIncomingRequestsTotal   *prometheus.Desc
 	NTPServerOutgoingResponsesTotal  *prometheus.Desc
+}
+
+func (c *TimeCollector) RegisterFlags(app *kingpin.Application) {
+}
+
+func (c *TimeCollector) Setup() {
+}
+
+func (c *TimeCollector) RegisterFlagsForLibrary(m map[string]string) {
+}
+
+func (c *TimeCollector) GetPerfCounterDependencies() []string {
+	return []string{"Windows Time Service"}
 }
 
 func newTimeCollector() (Collector, error) {

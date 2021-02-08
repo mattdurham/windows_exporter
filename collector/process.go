@@ -15,9 +15,9 @@ import (
 )
 
 func init() {
-	registerCollector("process", func() CollectorBuilder {
-		return builderFunc(newProcessCollector)
-	}, "Process")
+	registerCollector("process", func() (Collector, error) {
+		return newProcessCollector()
+	})
 }
 
 type processCollector struct {
@@ -42,12 +42,16 @@ type processCollector struct {
 	processBlackList string
 }
 
-func (c *processCollector) RegisterFlags(application kingpin.Application) {
-	application.Flag(
+func (c *processCollector) GetPerfCounterDependencies() []string {
+	return []string{"Process"}
+}
+
+func (c *processCollector) RegisterFlags(app *kingpin.Application) {
+	app.Flag(
 		"collector.process.whitelist",
 		"Regexp of processes to include. Process name must both match whitelist and not match blacklist to be included.",
 	).Default(".*").StringVar(&c.processWhiteList)
-	application.Flag(
+	app.Flag(
 		"collector.process.blacklist",
 		"Regexp of processes to exclude. Process name must both match whitelist and not match blacklist to be included.",
 	).Default("").StringVar(&c.processBlackList)

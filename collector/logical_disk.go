@@ -12,8 +12,8 @@ import (
 )
 
 func init() {
-	registerCollector("logical_disk", func() CollectorBuilder {
-		return &LogicalDiskConfig{}
+	registerCollector("logical_disk", func() (Collector, error) {
+		return NewLogicalDiskCollector()
 	})
 }
 
@@ -36,18 +36,16 @@ type LogicalDiskCollector struct {
 
 	volumeWhitelistPattern *regexp.Regexp
 	volumeBlacklistPattern *regexp.Regexp
+
+	volumeWhiteList string
+	volumeBlackList string
 }
 
 func (c *LogicalDiskCollector) GetPerfCounterDependencies() []string {
 	return []string{"LogicalDisk"}
 }
 
-type LogicalDiskConfig struct {
-	volumeWhiteList string
-	volumeBlackList string
-}
-
-func (c *LogicalDiskConfig) RegisterFlags(application *kingpin.Application) {
+func (c *LogicalDiskCollector) RegisterFlags(application *kingpin.Application) {
 	application.Flag(
 		"collector.logical_disk.volume-whitelist",
 		"Regexp of volumes to whitelist. Volume name must both match whitelist and not match blacklist to be included.",
@@ -58,7 +56,7 @@ func (c *LogicalDiskConfig) RegisterFlags(application *kingpin.Application) {
 	).Default("").StringVar(&c.volumeBlackList)
 }
 
-func (c *LogicalDiskConfig) RegisterFlagsForLibrary(m map[string]string) {
+func (c *LogicalDiskCollector) RegisterFlagsForLibrary(m map[string]string) {
 	whitelist, exists := m["collector.logical_disk.volume-whitelist"]
 	if exists == false {
 		whitelist = ".+"
@@ -71,14 +69,9 @@ func (c *LogicalDiskConfig) RegisterFlagsForLibrary(m map[string]string) {
 	c.volumeBlackList = blacklist
 }
 
-func (c *LogicalDiskConfig) Build() (Collector, error) {
-	lc, err := NewLogicalDiskCollector()
-	if err != nil {
-		return nil, err
-	}
-	lc.volumeWhitelistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", c.volumeWhiteList))
-	lc.volumeBlacklistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", c.volumeBlackList))
-	return lc, nil
+func (c *LogicalDiskCollector) Setup(){
+	c.volumeWhitelistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", c.volumeWhiteList))
+	c.volumeBlacklistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", c.volumeBlackList))
 }
 
 // NewLogicalDiskCollector ...

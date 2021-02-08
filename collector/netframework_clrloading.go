@@ -6,11 +6,12 @@ import (
 	"github.com/StackExchange/wmi"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 func init() {
-	registerCollector("netframework_clrloading", func() CollectorBuilder {
-		return builderFunc(NewNETFramework_NETCLRLoadingCollector)
+	registerCollector("netframework_clrloading", func() (Collector, error) {
+		return NewNETFramework_NETCLRLoadingCollector()
 	})
 }
 
@@ -25,6 +26,19 @@ type NETFramework_NETCLRLoadingCollector struct {
 	TotalAssemblies           *prometheus.Desc
 	TotalClassesLoaded        *prometheus.Desc
 	TotalNumberofLoadFailures *prometheus.Desc
+}
+
+func (c *NETFramework_NETCLRLoadingCollector) RegisterFlags(app *kingpin.Application) {
+}
+
+func (c *NETFramework_NETCLRLoadingCollector) Setup() {
+}
+
+func (c *NETFramework_NETCLRLoadingCollector) RegisterFlagsForLibrary(m map[string]string) {
+}
+
+func (c *NETFramework_NETCLRLoadingCollector) GetPerfCounterDependencies() []string {
+	return []string{}
 }
 
 // NewNETFramework_NETCLRLoadingCollector ...

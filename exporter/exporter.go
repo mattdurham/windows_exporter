@@ -24,7 +24,6 @@ import (
 type WindowsCollector struct {
 	maxScrapeDuration time.Duration
 	Collectors        map[string]collector.Collector
-	Configs           []collector.CollectorBuilder
 }
 
 // Same struct prometheus uses for their /version endpoint.
@@ -91,10 +90,13 @@ const (
 func (coll WindowsCollector) Collect(ch chan<- prometheus.Metric) {
 	t := time.Now()
 	cs := make([]string, 0, len(coll.Collectors))
-	for name := range coll.Collectors {
+	collectors := make([]collector.Collector, 0, len(coll.Collectors))
+
+	for name, value := range coll.Collectors {
 		cs = append(cs, name)
+		collectors = append(collectors, value)
 	}
-	scrapeContext, err := collector.PrepareScrapeContext(coll.Configs)
+	scrapeContext, err := collector.PrepareScrapeContext(collectors)
 	ch <- prometheus.MustNewConstMetric(
 		snapshotDuration,
 		prometheus.GaugeValue,
@@ -228,6 +230,7 @@ func loadCollectors(list string, app *kingpin.Application) (map[string]collector
 		if err != nil {
 			return nil, err
 		}
+		c.Setup()
 		collectors[name] = c
 	}
 
@@ -242,6 +245,7 @@ func loadCollectorsForLibrary(list string, config map[string]string) (map[string
 		if err != nil {
 			return nil, err
 		}
+		c.Setup()
 		collectors[name] = c
 	}
 

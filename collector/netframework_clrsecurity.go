@@ -6,11 +6,12 @@ import (
 	"github.com/StackExchange/wmi"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 func init() {
-	registerCollector("netframework_clrsecurity", func() CollectorBuilder {
-		return builderFunc(NewNETFramework_NETCLRSecurityCollector)
+	registerCollector("netframework_clrsecurity", func() (Collector, error) {
+		return NewNETFramework_NETCLRSecurityCollector()
 	})
 }
 
@@ -20,6 +21,19 @@ type NETFramework_NETCLRSecurityCollector struct {
 	TimeinRTchecks       *prometheus.Desc
 	StackWalkDepth       *prometheus.Desc
 	TotalRuntimeChecks   *prometheus.Desc
+}
+
+func (c *NETFramework_NETCLRSecurityCollector) RegisterFlags(app *kingpin.Application) {
+}
+
+func (c *NETFramework_NETCLRSecurityCollector) Setup() {
+}
+
+func (c *NETFramework_NETCLRSecurityCollector) RegisterFlagsForLibrary(m map[string]string) {
+}
+
+func (c *NETFramework_NETCLRSecurityCollector) GetPerfCounterDependencies() []string {
+	return []string{}
 }
 
 // NewNETFramework_NETCLRSecurityCollector ...

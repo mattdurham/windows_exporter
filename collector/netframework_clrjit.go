@@ -6,11 +6,12 @@ import (
 	"github.com/StackExchange/wmi"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 func init() {
-	registerCollector("netframework_clrjit", func() CollectorBuilder {
-		return builderFunc(NewNETFramework_NETCLRJitCollector)
+	registerCollector("netframework_clrjit", func() (Collector,error) {
+		return NewNETFramework_NETCLRJitCollector()
 	})
 }
 
@@ -20,6 +21,19 @@ type NETFramework_NETCLRJitCollector struct {
 	TimeinJit                  *prometheus.Desc
 	StandardJitFailures        *prometheus.Desc
 	TotalNumberofILBytesJitted *prometheus.Desc
+}
+
+func (c *NETFramework_NETCLRJitCollector) RegisterFlags(app *kingpin.Application) {
+}
+
+func (c *NETFramework_NETCLRJitCollector) Setup() {
+}
+
+func (c *NETFramework_NETCLRJitCollector) RegisterFlagsForLibrary(m map[string]string) {
+}
+
+func (c *NETFramework_NETCLRJitCollector) GetPerfCounterDependencies() []string {
+	return []string{}
 }
 
 // NewNETFramework_NETCLRJitCollector ...

@@ -6,11 +6,12 @@ import (
 	"github.com/StackExchange/wmi"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 func init() {
-	registerCollector("netframework_clrinterop", func() CollectorBuilder {
-		return builderFunc(NewNETFramework_NETCLRInteropCollector)
+	registerCollector("netframework_clrinterop", func() (Collector, error) {
+		return NewNETFramework_NETCLRInteropCollector()
 	})
 }
 
@@ -19,6 +20,19 @@ type NETFramework_NETCLRInteropCollector struct {
 	NumberofCCWs        *prometheus.Desc
 	Numberofmarshalling *prometheus.Desc
 	NumberofStubs       *prometheus.Desc
+}
+
+func (c *NETFramework_NETCLRInteropCollector) RegisterFlags(app *kingpin.Application) {
+}
+
+func (c *NETFramework_NETCLRInteropCollector) Setup() {
+}
+
+func (c *NETFramework_NETCLRInteropCollector) RegisterFlagsForLibrary(m map[string]string) {
+}
+
+func (c *NETFramework_NETCLRInteropCollector) GetPerfCounterDependencies() []string {
+	return []string{}
 }
 
 // NewNETFramework_NETCLRInteropCollector ...

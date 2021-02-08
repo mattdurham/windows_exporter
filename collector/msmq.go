@@ -12,8 +12,8 @@ import (
 )
 
 func init() {
-	registerCollector("msmq", func() CollectorBuilder {
-		return &MSMQConfig{}
+	registerCollector("msmq", func() (Collector,error) {
+		return NewMSMQCollector()
 	})
 }
 
@@ -24,34 +24,32 @@ type Win32_PerfRawData_MSMQ_MSMQQueueCollector struct {
 	MessagesinJournalQueue *prometheus.Desc
 	MessagesinQueue        *prometheus.Desc
 
-	queryWhereClause string
-}
-
-type MSMQConfig struct {
 	MSMQWhereClause string
 
 }
 
-func (c *MSMQConfig) RegisterFlags(app *kingpin.Application) {
+func (c *Win32_PerfRawData_MSMQ_MSMQQueueCollector) GetPerfCounterDependencies() []string {
+	return []string{}
+}
+
+func (c *Win32_PerfRawData_MSMQ_MSMQQueueCollector) RegisterFlags(app *kingpin.Application) {
 	app.Flag("collector.msmq.msmq-where", "WQL 'where' clause to use in WMI metrics query. Limits the response to the msmqs you specify and reduces the size of the response.").StringVar(&c.MSMQWhereClause)
 }
 
-func (c *MSMQConfig) Build() (Collector, error) {
-	return NewMSMQCollector(c)
-}
+func (c *Win32_PerfRawData_MSMQ_MSMQQueueCollector) Setup() {
+	if c.MSMQWhereClause == "" {
+		log.Warn("No where-clause specified for msmq collector. This will generate a very large number of metrics!")
+	}}
 
-func (c *MSMQConfig) RegisterFlagsForLibrary(m map[string]string) {
-	if msmq, exists := m["collector.msmq.msmq-where"]; exists {
-		c.MSMQWhereClause = msmq
-	}
+func (c *Win32_PerfRawData_MSMQ_MSMQQueueCollector) RegisterFlagsForLibrary(m map[string]string) {
+	c.MSMQWhereClause = getValueFromMap(m,"collector.msmq.msmq-where")
+
 }
 
 // NewWin32_PerfRawData_MSMQ_MSMQQueueCollector ...
-func NewMSMQCollector(c *MSMQConfig) (Collector, error) {
+func NewMSMQCollector() (Collector, error) {
 	const subsystem = "msmq"
-	if c.MSMQWhereClause == "" {
-		log.Warn("No where-clause specified for msmq collector. This will generate a very large number of metrics!")
-	}
+
 	return &Win32_PerfRawData_MSMQ_MSMQQueueCollector{
 		BytesinJournalQueue: prometheus.NewDesc(
 			prometheus.BuildFQName(Namespace, subsystem, "bytes_in_journal_queue"),
@@ -77,7 +75,6 @@ func NewMSMQCollector(c *MSMQConfig) (Collector, error) {
 			[]string{"name"},
 			nil,
 		),
-		queryWhereClause: c.MSMQWhereClause,
 	}, nil
 }
 
@@ -102,7 +99,7 @@ type Win32_PerfRawData_MSMQ_MSMQQueue struct {
 
 func (c *Win32_PerfRawData_MSMQ_MSMQQueueCollector) collect(ch chan<- prometheus.Metric) (*prometheus.Desc, error) {
 	var dst []Win32_PerfRawData_MSMQ_MSMQQueue
-	q := queryAllWhere(&dst, c.queryWhereClause)
+	q := queryAllWhere(&dst, c.MSMQWhereClause)
 	if err := wmi.Query(q, &dst); err != nil {
 		return nil, err
 	}

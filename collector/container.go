@@ -6,11 +6,12 @@ import (
 	"github.com/Microsoft/hcsshim"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 func init() {
-	registerCollector("container", func() CollectorBuilder {
-		return builderFunc(NewContainerMetricsCollector)
+	registerCollector("container", func() (Collector, error) {
+		return NewContainerMetricsCollector()
 	})
 }
 
@@ -38,6 +39,15 @@ type ContainerMetricsCollector struct {
 	PacketsSent            *prometheus.Desc
 	DroppedPacketsIncoming *prometheus.Desc
 	DroppedPacketsOutgoing *prometheus.Desc
+}
+
+func (c *ContainerMetricsCollector) RegisterFlags(app *kingpin.Application) {
+}
+
+func (c *ContainerMetricsCollector) Setup() {
+}
+
+func (c *ContainerMetricsCollector) RegisterFlagsForLibrary(m map[string]string) {
 }
 
 func (c *ContainerMetricsCollector) GetPerfCounterDependencies() []string {

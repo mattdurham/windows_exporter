@@ -12,7 +12,9 @@ import (
 )
 
 func init() {
-	registerCollector("net", func() CollectorBuilder { return &NetworkCollectorConfig{} }, "Network Interface")
+	registerCollector("net", func() (Collector,error) {
+		return NewNetworkCollector()
+	})
 }
 
 var nicNameToUnderscore = regexp.MustCompile("[^a-zA-Z0-9]")
@@ -34,14 +36,16 @@ type NetworkCollector struct {
 
 	nicWhitelistPattern *regexp.Regexp
 	nicBlacklistPattern *regexp.Regexp
-}
 
-type NetworkCollectorConfig struct {
 	nicWhiteList string
 	nicBlackList string
 }
 
-func (c *NetworkCollectorConfig) RegisterFlags(application *kingpin.Application) {
+func (c *NetworkCollector) GetPerfCounterDependencies() []string {
+	return []string{"Network Interface"}
+}
+
+func (c *NetworkCollector) RegisterFlags(application *kingpin.Application) {
 	application.Flag(
 		"collector.net.nic-blacklist",
 		"Regexp of NIC:s to blacklist. NIC name must both match whitelist and not match blacklist to be included.",
@@ -52,7 +56,7 @@ func (c *NetworkCollectorConfig) RegisterFlags(application *kingpin.Application)
 	).Default(".+").StringVar(&c.nicWhiteList)
 }
 
-func (c *NetworkCollectorConfig) RegisterFlagsForLibrary(m map[string]string) {
+func (c *NetworkCollector) RegisterFlagsForLibrary(m map[string]string) {
 	nicBlackList, exists := m["collector.net.nic-blacklist"]
 	if exists == false {
 		nicBlackList = ""
@@ -66,14 +70,11 @@ func (c *NetworkCollectorConfig) RegisterFlagsForLibrary(m map[string]string) {
 	c.nicWhiteList = nicWhiteList
 }
 
-func (c *NetworkCollectorConfig) Build() (Collector, error) {
-	nc := &NetworkCollector{}
-	nc.nicWhitelistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", c.nicWhiteList))
-	nc.nicBlacklistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", c.nicBlackList))
-	return nc, nil
+func (c *NetworkCollector) Setup() {
+	c.nicWhitelistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", c.nicWhiteList))
+	c.nicBlacklistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", c.nicBlackList))
 }
 
-func (c *NetworkCollectorConfig) Setup() {}
 
 // NewNetworkCollector ...
 func NewNetworkCollector() (Collector, error) {

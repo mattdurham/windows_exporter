@@ -4,6 +4,7 @@ package collector
 
 import (
 	"errors"
+	"gopkg.in/alecthomas/kingpin.v2"
 	"strings"
 
 	"github.com/StackExchange/wmi"
@@ -14,9 +15,9 @@ import (
 const ConnectionBrokerFeatureID uint32 = 133
 
 func init() {
-	registerCollector("terminal_services", func() CollectorBuilder {
-		return builderFunc(NewTerminalServicesCollector)
-	}, "Terminal Services", "Terminal Services Session", "Remote Desktop Connection Broker Counterset")
+	registerCollector("terminal_services", func() (Collector,error) {
+		return NewTerminalServicesCollector()
+	}, )
 }
 
 // This global should be fine, since it is an aspect of the machine
@@ -65,6 +66,19 @@ type TerminalServicesCollector struct {
 	VirtualBytesPeak            *prometheus.Desc
 	WorkingSet                  *prometheus.Desc
 	WorkingSetPeak              *prometheus.Desc
+}
+
+func (c *TerminalServicesCollector) RegisterFlags(app *kingpin.Application) {
+}
+
+func (c *TerminalServicesCollector) Setup() {
+}
+
+func (c *TerminalServicesCollector) RegisterFlagsForLibrary(m map[string]string) {
+}
+
+func (c *TerminalServicesCollector) GetPerfCounterDependencies() []string {
+	return []string{"Terminal Services", "Terminal Services Session", "Remote Desktop Connection Broker Counterset"}
 }
 
 // NewTerminalServicesCollector ...

@@ -7,11 +7,12 @@ import (
 	"github.com/StackExchange/wmi"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 func init() {
-	registerCollector("ad", func() CollectorBuilder {
-		return builderFunc(NewADCollector)
+	registerCollector("ad", func () (Collector,error) {
+		return NewADCollector()
 	})
 }
 
@@ -78,6 +79,18 @@ type ADCollector struct {
 	SamPasswordChangesTotal                             *prometheus.Desc
 	TombstonedObjectsCollectedTotal                     *prometheus.Desc
 	TombstonedObjectsVisitedTotal                       *prometheus.Desc
+}
+
+func (c *ADCollector) RegisterFlags(app *kingpin.Application) {
+}
+
+func (c *ADCollector) Build() (Collector, error) {
+	return NewADCollector()
+}
+
+func (c *ADCollector) Setup() {}
+
+func (c *ADCollector) RegisterFlagsForLibrary(m map[string]string) {
 }
 
 func (c *ADCollector) GetPerfCounterDependencies() []string {

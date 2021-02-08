@@ -13,17 +13,10 @@ import (
 )
 
 func init() {
-	registerCollector("service", func() CollectorBuilder {
-		return builderFunc(NewserviceCollector)
+	registerCollector("service", func() (Collector, error) {
+		return NewserviceCollector()
 	})
 }
-
-var (
-	serviceWhereClause = kingpin.Flag(
-		"collector.service.services-where",
-		"WQL 'where' clause to use in WMI metrics query. Limits the response to the services you specify and reduces the size of the response.",
-	).Default("").String()
-)
 
 // A serviceCollector is a Prometheus collector for WMI Win32_Service metrics
 type serviceCollector struct {
@@ -32,16 +25,35 @@ type serviceCollector struct {
 	StartMode   *prometheus.Desc
 	Status      *prometheus.Desc
 
-	queryWhereClause string
+	QueryWhereClause string
+}
+
+func (c *serviceCollector) RegisterFlags(app *kingpin.Application) {
+	kingpin.Flag(
+		"collector.service.services-where",
+		"WQL 'where' clause to use in WMI metrics query. Limits the response to the services you specify and reduces the size of the response.",
+	).Default("").StringVar(&c.QueryWhereClause)
+}
+
+func (c *serviceCollector) Setup() {
+	if c.QueryWhereClause == "" {
+		log.Warn("No where-clause specified for service collector. This will generate a very large number of metrics!")
+	}
+}
+
+func (c *serviceCollector) RegisterFlagsForLibrary(m map[string]string) {
+	c.QueryWhereClause = getValueFromMapWithDefault(m,"collector.service.services-where", "" )
+}
+
+func (c *serviceCollector) GetPerfCounterDependencies() []string {
+	return []string{}
 }
 
 // NewserviceCollector ...
 func NewserviceCollector() (Collector, error) {
 	const subsystem = "service"
 
-	if *serviceWhereClause == "" {
-		log.Warn("No where-clause specified for service collector. This will generate a very large number of metrics!")
-	}
+
 
 	return &serviceCollector{
 		Information: prometheus.NewDesc(
@@ -68,7 +80,6 @@ func NewserviceCollector() (Collector, error) {
 			[]string{"name", "status"},
 			nil,
 		),
-		queryWhereClause: *serviceWhereClause,
 	}, nil
 }
 
@@ -130,7 +141,7 @@ var (
 
 func (c *serviceCollector) collect(ch chan<- prometheus.Metric) (*prometheus.Desc, error) {
 	var dst []Win32_Service
-	q := queryAllWhere(&dst, c.queryWhereClause)
+	q := queryAllWhere(&dst, c.QueryWhereClause)
 	if err := wmi.Query(q, &dst); err != nil {
 		return nil, err
 	}

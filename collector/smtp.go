@@ -12,9 +12,9 @@ import (
 
 func init() {
 	log.Info("smtp collector is in an experimental state! Metrics for this collector have not been tested.")
-	registerCollector("smtp", func() CollectorBuilder {
-		return &SMTPConfig{}
-	}, "SMTP Server")
+	registerCollector("smtp", func() (Collector, error) {
+		return NewSMTPCollector()
+	})
 }
 
 type SMTPCollector struct {
@@ -63,39 +63,31 @@ type SMTPCollector struct {
 
 	serverWhitelistPattern *regexp.Regexp
 	serverBlacklistPattern *regexp.Regexp
+
+	ServerWhitelist string
+	ServerBlacklist string
 }
 
-type SMTPConfig struct {
-	serverWhitelist string
-	serverBlacklist string
+func (c *SMTPCollector) GetPerfCounterDependencies() []string {
+	return []string{"SMTP Server"}
 }
 
-func (c *SMTPConfig) RegisterFlags(application *kingpin.Application) {
-	application.Flag("collector.smtp.server-whitelist", "Regexp of virtual servers to whitelist. Server name must both match whitelist and not match blacklist to be included.").Default(".+").StringVar(&c.serverWhitelist)
-	application.Flag("collector.smtp.server-blacklist", "Regexp of virtual servers to blacklist. Server name must both match whitelist and not match blacklist to be included.").StringVar(&c.serverBlacklist)
+
+func (c *SMTPCollector) RegisterFlags(application *kingpin.Application) {
+	application.Flag("collector.smtp.server-whitelist", "Regexp of virtual servers to whitelist. Server name must both match whitelist and not match blacklist to be included.").Default(".+").StringVar(&c.ServerWhitelist)
+	application.Flag("collector.smtp.server-blacklist", "Regexp of virtual servers to blacklist. Server name must both match whitelist and not match blacklist to be included.").StringVar(&c.ServerBlacklist)
 
 }
 
-func (c *SMTPConfig) RegisterFlagsForLibrary(m map[string]string) {
-	whiteList, exists := m["collector.smtp.server-whitelist"]
-	if exists == false {
-		whiteList = ".+"
-	}
-	c.serverWhitelist = whiteList
-
-	blackList, exists := m["collector.smtp.server-blacklist"]
-	c.serverWhitelist = blackList
+func (c *SMTPCollector) RegisterFlagsForLibrary(m map[string]string) {
+	c.ServerWhitelist = getValueFromMapWithDefault(m, "collector.smtp.server-whitelist", ".+")
+	c.ServerBlacklist = getValueFromMap(m,"collector.smtp.server-blacklist")
 }
 
-func (c *SMTPConfig) Build() (Collector, error) {
-	sc, err := NewSMTPCollector()
-	if err != nil {
-		return nil, err
-	}
+func (c *SMTPCollector) Setup() {
+	c.serverWhitelistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", c.ServerWhitelist))
+	c.serverBlacklistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", c.ServerBlacklist))
 
-	sc.serverWhitelistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", c.serverWhitelist))
-	sc.serverBlacklistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", c.serverBlacklist))
-	return sc, nil
 }
 
 func NewSMTPCollector() (*SMTPCollector, error) {
