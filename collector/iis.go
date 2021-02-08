@@ -200,22 +200,10 @@ func (c *IISCollector) RegisterFlags(application *kingpin.Application) {
 }
 
 func (c *IISCollector) RegisterFlagsForLibrary(m map[string]string) {
-	siteWhiteList, exists := m["collector.iis.site-whitelist"]
-	if exists == false {
-		siteWhiteList = ".+"
-	}
-	c.siteWhitelist = siteWhiteList
-
-	appWhitelist, exists := m["collector.iis.app-whitelist"]
-	if exists == false {
-		appWhitelist = ".+"
-	}
-	c.appWhitelist = appWhitelist
-
-	siteBlackList := m["collector.iis.site-blacklist"]
-	c.siteBlacklist = siteBlackList
-	appBlackList := m["collector.iis.app-blacklist"]
-	c.appBlacklist = appBlackList
+	c.siteWhitelist = getValueFromMapWithDefault(m,"collector.iis.site-whitelist", ".+")
+	c.appWhitelist = getValueFromMapWithDefault(m,"collector.iis.app-whitelist",".+")
+	c.siteBlacklist = getValueFromMap(m, "collector.iis.site-blacklist")
+	c.appBlacklist = getValueFromMap(m,"collector.iis.app-blacklist")
 }
 
 func (c *IISCollector) Setup() {
