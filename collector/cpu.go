@@ -3,7 +3,6 @@
 package collector
 
 import (
-	"gopkg.in/alecthomas/kingpin.v2"
 	"strings"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -42,15 +41,6 @@ type cpuCollectorFull struct {
 	ProcessorFrequencyMHz    *prometheus.Desc
 	ProcessorMaxFrequencyMHz *prometheus.Desc
 	ProcessorPerformance     *prometheus.Desc
-}
-
-func (c *cpuCollectorFull) RegisterFlags(app *kingpin.Application) {
-}
-
-func (c *cpuCollectorFull) Setup() {
-}
-
-func (c *cpuCollectorFull) RegisterFlagsForLibrary(m map[string]string) {
 }
 
 func (c *cpuCollectorFull) GetPerfCounterDependencies() []string {
