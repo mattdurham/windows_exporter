@@ -7,9 +7,7 @@ import (
 )
 
 func init() {
-	registerCollector("adfs", func() (Collector, error) {
-		return newADFSCollector()
-	})
+	registerCollector("adfs", newADFSCollector)
 }
 
 type adfsCollector struct {

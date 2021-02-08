@@ -13,9 +13,7 @@ import (
 )
 
 func init() {
-	registerCollector("service", func() (Collector, error) {
-		return NewserviceCollector()
-	})
+	registerCollector("service", NewserviceCollector)
 }
 
 // A serviceCollector is a Prometheus collector for WMI Win32_Service metrics

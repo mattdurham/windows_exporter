@@ -12,9 +12,7 @@ import (
 )
 
 func init() {
-	registerCollector("logical_disk", func() (Collector, error) {
-		return NewLogicalDiskCollector()
-	})
+	registerCollector("logical_disk", NewLogicalDiskCollector)
 }
 
 // A LogicalDiskCollector is a Prometheus collector for perflib logicalDisk metrics

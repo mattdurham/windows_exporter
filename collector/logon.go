@@ -10,9 +10,7 @@ import (
 )
 
 func init() {
-	registerCollector("logon", func() (Collector, error) {
-		return NewLogonCollector()
-	})
+	registerCollector("logon", NewLogonCollector)
 }
 
 // A LogonCollector is a Prometheus collector for WMI metrics

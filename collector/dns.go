@@ -10,9 +10,7 @@ import (
 )
 
 func init() {
-	registerCollector("dns", func() (Collector,error) {
-		return NewDNSCollector()
-	})
+	registerCollector("dns", NewDNSCollector)
 }
 
 // A DNSCollector is a Prometheus collector for WMI Win32_PerfRawData_DNS_DNS metrics

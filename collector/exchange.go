@@ -13,10 +13,7 @@ import (
 )
 
 func init() {
-	registerCollector("exchange",
-		func() (Collector,error) {
-			return newExchangeCollector()
-		})
+	registerCollector("exchange",newExchangeCollector)
 }
 
 type exchangeCollector struct {

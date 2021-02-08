@@ -9,9 +9,7 @@ import (
 )
 
 func init() {
-	registerCollector("netframework_clrmemory", func() (Collector, error) {
-		return NewNETFramework_NETCLRMemoryCollector()
-	})
+	registerCollector("netframework_clrmemory", NewNETFramework_NETCLRMemoryCollector)
 }
 
 // A NETFramework_NETCLRMemoryCollector is a Prometheus collector for WMI Win32_PerfRawData_NETFramework_NETCLRMemory metrics

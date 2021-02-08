@@ -9,9 +9,7 @@ import (
 )
 
 func init() {
-	registerCollector("time", func() (Collector, error) {
-		return newTimeCollector()
-	})
+	registerCollector("time", newTimeCollector)
 }
 
 // TimeCollector is a Prometheus collector for Perflib counter metrics

@@ -12,9 +12,7 @@ import (
 )
 
 func init() {
-	registerCollector("net", func() (Collector,error) {
-		return NewNetworkCollector()
-	})
+	registerCollector("net", NewNetworkCollector)
 }
 
 var nicNameToUnderscore = regexp.MustCompile("[^a-zA-Z0-9]")

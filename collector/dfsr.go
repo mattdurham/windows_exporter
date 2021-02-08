@@ -10,10 +10,7 @@ import (
 
 func init() {
 	log.Info("dfsr collector is in an experimental state! Metrics for this collector have not been tested.")
-	registerCollector(
-		"dfsr",
-		func() (Collector,error) { return dfsrBuild() },
-	)
+	registerCollector("dfsr",dfsrBuild)
 }
 
 // DFSRCollector contains the metric and state data of the DFSR collectors.

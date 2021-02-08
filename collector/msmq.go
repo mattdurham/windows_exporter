@@ -12,9 +12,7 @@ import (
 )
 
 func init() {
-	registerCollector("msmq", func() (Collector,error) {
-		return NewMSMQCollector()
-	})
+	registerCollector("msmq", NewMSMQCollector)
 }
 
 // A Win32_PerfRawData_MSMQ_MSMQQueueCollector is a Prometheus collector for WMI Win32_PerfRawData_MSMQ_MSMQQueue metrics

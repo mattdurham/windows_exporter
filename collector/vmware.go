@@ -10,9 +10,7 @@ import (
 )
 
 func init() {
-	registerCollector("vmware", func() (Collector, error) {
-		return NewVmwareCollector()
-	})
+	registerCollector("vmware", NewVmwareCollector)
 }
 
 // A VmwareCollector is a Prometheus collector for WMI Win32_PerfRawData_vmGuestLib_VMem/Win32_PerfRawData_vmGuestLib_VCPU metrics

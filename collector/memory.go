@@ -11,9 +11,7 @@ import (
 )
 
 func init() {
-	registerCollector("memory", func() (Collector,error) {
-		return NewMemoryCollector()
-	})
+	registerCollector("memory", NewMemoryCollector)
 }
 
 // A MemoryCollector is a Prometheus collector for perflib Memory metrics

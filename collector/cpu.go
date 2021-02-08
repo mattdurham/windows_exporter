@@ -9,9 +9,7 @@ import (
 )
 
 func init() {
-	registerCollector("cpu", func() (Collector, error) {
-		return newCPUCollector()
-	})
+	registerCollector("cpu", newCPUCollector)
 }
 
 type cpuCollectorBasic struct {

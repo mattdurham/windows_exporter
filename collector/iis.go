@@ -16,9 +16,7 @@ import (
 )
 
 func init() {
-	registerCollector("iis", func() (Collector,error) {
-		return NewIISCollector()
-	})
+	registerCollector("iis", NewIISCollector)
 }
 
 type simple_version struct {

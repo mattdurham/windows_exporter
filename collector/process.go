@@ -15,9 +15,7 @@ import (
 )
 
 func init() {
-	registerCollector("process", func() (Collector, error) {
-		return newProcessCollector()
-	})
+	registerCollector("process", newProcessCollector)
 }
 
 type processCollector struct {

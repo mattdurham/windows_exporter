@@ -9,9 +9,7 @@ import (
 )
 
 func init() {
-	registerCollector("container", func() (Collector, error) {
-		return NewContainerMetricsCollector()
-	})
+	registerCollector("container", NewContainerMetricsCollector)
 }
 
 // A ContainerMetricsCollector is a Prometheus collector for containers metrics
