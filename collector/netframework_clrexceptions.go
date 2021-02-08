@@ -9,7 +9,7 @@ import (
 )
 
 func init() {
-	registerCollector("netframework_clrexceptions", func() collectorBuilder {
+	registerCollector("netframework_clrexceptions", func() CollectorBuilder {
 		return builderFunc(NewNETFramework_NETCLRExceptionsCollector)
 	})
 }

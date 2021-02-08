@@ -7,7 +7,7 @@ import (
 )
 
 func init() {
-	registerCollector("thermalzone", func() collectorBuilder {
+	registerCollector("thermalzone", func() CollectorBuilder {
 		return builderFunc(NewThermalZoneCollector)
 	})
 }

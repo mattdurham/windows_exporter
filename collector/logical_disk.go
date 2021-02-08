@@ -12,9 +12,9 @@ import (
 )
 
 func init() {
-	registerCollector("logical_disk", func() collectorBuilder {
+	registerCollector("logical_disk", func() CollectorBuilder {
 		return &LogicalDiskConfig{}
-	}, "LogicalDisk")
+	})
 }
 
 // A LogicalDiskCollector is a Prometheus collector for perflib logicalDisk metrics
@@ -36,6 +36,10 @@ type LogicalDiskCollector struct {
 
 	volumeWhitelistPattern *regexp.Regexp
 	volumeBlacklistPattern *regexp.Regexp
+}
+
+func (c *LogicalDiskCollector) GetPerfCounterDependencies() []string {
+	return []string{"LogicalDisk"}
 }
 
 type LogicalDiskConfig struct {

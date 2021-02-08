@@ -8,7 +8,7 @@ import (
 )
 
 func init() {
-	registerCollector("tcp", func() collectorBuilder {
+	registerCollector("tcp", func() CollectorBuilder {
 		return builderFunc(NewTCPCollector)
 	}, "TCPv4", "TCPv6")
 }

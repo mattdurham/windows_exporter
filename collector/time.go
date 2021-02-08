@@ -9,7 +9,7 @@ import (
 )
 
 func init() {
-	registerCollector("time", func() collectorBuilder {
+	registerCollector("time", func() CollectorBuilder {
 		return builderFunc(newTimeCollector)
 	}, "Windows Time Service")
 }

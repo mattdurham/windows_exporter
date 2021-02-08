@@ -10,7 +10,7 @@ import (
 )
 
 func init() {
-	registerCollector("logon", func() collectorBuilder {
+	registerCollector("logon", func() CollectorBuilder {
 		return builderFunc(NewLogonCollector)
 	})
 }
@@ -18,6 +18,10 @@ func init() {
 // A LogonCollector is a Prometheus collector for WMI metrics
 type LogonCollector struct {
 	LogonType *prometheus.Desc
+}
+
+func (c *LogonCollector) GetPerfCounterDependencies() []string {
+	return []string{}
 }
 
 // NewLogonCollector ...

@@ -10,7 +10,7 @@ import (
 )
 
 func init() {
-	registerCollector("remote_fx", func() collectorBuilder {
+	registerCollector("remote_fx", func() CollectorBuilder {
 		return builderFunc(NewRemoteFx)
 	}, "RemoteFX Network", "RemoteFX Graphics")
 }

@@ -10,7 +10,7 @@ import (
 )
 
 func init() {
-	registerCollector("cs", func() collectorBuilder {
+	registerCollector("cs", func() CollectorBuilder {
 		return builderFunc(NewCSCollector)
 	})
 }
@@ -20,6 +20,10 @@ type CSCollector struct {
 	PhysicalMemoryBytes *prometheus.Desc
 	LogicalProcessors   *prometheus.Desc
 	Hostname            *prometheus.Desc
+}
+
+func (c *CSCollector) GetPerfCounterDependencies() []string {
+	return []string{}
 }
 
 // NewCSCollector ...

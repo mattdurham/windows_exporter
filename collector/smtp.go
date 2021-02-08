@@ -12,7 +12,7 @@ import (
 
 func init() {
 	log.Info("smtp collector is in an experimental state! Metrics for this collector have not been tested.")
-	registerCollector("smtp", func() collectorBuilder {
+	registerCollector("smtp", func() CollectorBuilder {
 		return &SMTPConfig{}
 	}, "SMTP Server")
 }

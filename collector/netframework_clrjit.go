@@ -9,7 +9,7 @@ import (
 )
 
 func init() {
-	registerCollector("netframework_clrjit", func() collectorBuilder {
+	registerCollector("netframework_clrjit", func() CollectorBuilder {
 		return builderFunc(NewNETFramework_NETCLRJitCollector)
 	})
 }

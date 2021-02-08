@@ -14,7 +14,7 @@ import (
 const ConnectionBrokerFeatureID uint32 = 133
 
 func init() {
-	registerCollector("terminal_services", func() collectorBuilder {
+	registerCollector("terminal_services", func() CollectorBuilder {
 		return builderFunc(NewTerminalServicesCollector)
 	}, "Terminal Services", "Terminal Services Session", "Remote Desktop Connection Broker Counterset")
 }

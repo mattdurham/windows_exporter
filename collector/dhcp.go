@@ -7,9 +7,9 @@ import (
 )
 
 func init() {
-	registerCollector("dhcp", func() collectorBuilder {
+	registerCollector("dhcp", func() CollectorBuilder {
 		return builderFunc(NewDhcpCollector)
-	}, "DHCP Server")
+	})
 }
 
 // A DhcpCollector is a Prometheus collector perflib DHCP metrics
@@ -39,6 +39,10 @@ type DhcpCollector struct {
 	FailoverTransitionsPartnerdownState              *prometheus.Desc
 	FailoverTransitionsRecoverState                  *prometheus.Desc
 	FailoverBndupdDropped                            *prometheus.Desc
+}
+
+func (c *DhcpCollector) GetPerfCounterDependencies() []string {
+	return []string{"DHCP Server"}
 }
 
 func NewDhcpCollector() (Collector, error) {

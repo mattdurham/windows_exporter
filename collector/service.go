@@ -13,7 +13,7 @@ import (
 )
 
 func init() {
-	registerCollector("service", func() collectorBuilder {
+	registerCollector("service", func() CollectorBuilder {
 		return builderFunc(NewserviceCollector)
 	})
 }

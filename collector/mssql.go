@@ -126,7 +126,7 @@ func mssqlGetPerfObjectName(sqlInstance string, collector string) string {
 }
 
 func init() {
-	registerCollector("mssql", func() collectorBuilder {
+	registerCollector("mssql", func() CollectorBuilder {
 		return builderFunc(NewMSSQLCollector)
 	})
 }

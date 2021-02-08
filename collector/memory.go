@@ -11,7 +11,7 @@ import (
 )
 
 func init() {
-	registerCollector("memory", func() collectorBuilder {
+	registerCollector("memory", func() CollectorBuilder {
 		return builderFunc(NewMemoryCollector)
 	}, "Memory")
 }

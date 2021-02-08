@@ -54,7 +54,7 @@ type textFileCollector struct {
 }
 
 func init() {
-	registerCollector("textfile", func() collectorBuilder {
+	registerCollector("textfile", func() CollectorBuilder {
 		return builderFunc(NewTextFileCollector)
 	})
 }

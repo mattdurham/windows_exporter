@@ -9,16 +9,9 @@ import (
 )
 
 func init() {
-	var deps string
-	// See below for 6.05 magic value
-	if getWindowsVersion() > 6.05 {
-		deps = "Processor Information"
-	} else {
-		deps = "Processor"
-	}
-	registerCollector("cpu", func() collectorBuilder {
+	registerCollector("cpu", func() CollectorBuilder {
 		return builderFunc(newCPUCollector)
-	}, deps)
+	})
 }
 
 type cpuCollectorBasic struct {
@@ -26,6 +19,15 @@ type cpuCollectorBasic struct {
 	TimeTotal          *prometheus.Desc
 	InterruptsTotal    *prometheus.Desc
 	DPCsTotal          *prometheus.Desc
+}
+
+func (c *cpuCollectorBasic) GetPerfCounterDependencies() []string {
+	// See below for 6.05 magic value
+	if getWindowsVersion() > 6.05 {
+		return []string{"Processor Information"}
+	} else {
+		return []string{"Processor"}
+	}
 }
 
 type cpuCollectorFull struct {
@@ -39,6 +41,15 @@ type cpuCollectorFull struct {
 	ProcessorFrequencyMHz    *prometheus.Desc
 	ProcessorMaxFrequencyMHz *prometheus.Desc
 	ProcessorPerformance     *prometheus.Desc
+}
+
+func (c *cpuCollectorFull) GetPerfCounterDependencies() []string {
+	// See below for 6.05 magic value
+	if getWindowsVersion() > 6.05 {
+		return []string{"Processor Information"}
+	} else {
+		return []string{"Processor"}
+	}
 }
 
 // newCPUCollector constructs a new cpuCollector, appropriate for the running OS

@@ -12,8 +12,8 @@ import (
 )
 
 func init() {
-	registerCollector("msmq", func() collectorBuilder {
-		return builderFunc(NewMSMQCollector)
+	registerCollector("msmq", func() CollectorBuilder {
+		return &MSMQConfig{}
 	})
 }
 
@@ -27,14 +27,31 @@ type Win32_PerfRawData_MSMQ_MSMQQueueCollector struct {
 	queryWhereClause string
 }
 
+type MSMQConfig struct {
+	MSMQWhereClause string
+
+}
+
+func (c *MSMQConfig) RegisterFlags(app *kingpin.Application) {
+	app.Flag("collector.msmq.msmq-where", "WQL 'where' clause to use in WMI metrics query. Limits the response to the msmqs you specify and reduces the size of the response.").StringVar(&c.MSMQWhereClause)
+}
+
+func (c *MSMQConfig) Build() (Collector, error) {
+	return NewMSMQCollector(c)
+}
+
+func (c *MSMQConfig) RegisterFlagsForLibrary(m map[string]string) {
+	if msmq, exists := m["collector.msmq.msmq-where"]; exists {
+		c.MSMQWhereClause = msmq
+	}
+}
+
 // NewWin32_PerfRawData_MSMQ_MSMQQueueCollector ...
-func NewMSMQCollector() (Collector, error) {
+func NewMSMQCollector(c *MSMQConfig) (Collector, error) {
 	const subsystem = "msmq"
-	msmqWhereClause := kingpin.Flag("collector.msmq.msmq-where", "WQL 'where' clause to use in WMI metrics query. Limits the response to the msmqs you specify and reduces the size of the response.").String()
-	if *msmqWhereClause == "" {
+	if c.MSMQWhereClause == "" {
 		log.Warn("No where-clause specified for msmq collector. This will generate a very large number of metrics!")
 	}
-
 	return &Win32_PerfRawData_MSMQ_MSMQQueueCollector{
 		BytesinJournalQueue: prometheus.NewDesc(
 			prometheus.BuildFQName(Namespace, subsystem, "bytes_in_journal_queue"),
@@ -60,7 +77,7 @@ func NewMSMQCollector() (Collector, error) {
 			[]string{"name"},
 			nil,
 		),
-		queryWhereClause: *msmqWhereClause,
+		queryWhereClause: c.MSMQWhereClause,
 	}, nil
 }
 

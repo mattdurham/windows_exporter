@@ -16,7 +16,7 @@ import (
 )
 
 func init() {
-	registerCollector("iis", func() collectorBuilder {
+	registerCollector("iis", func() CollectorBuilder {
 		return &IISConfig{}
 	})
 }
@@ -184,6 +184,10 @@ type IISCollector struct {
 	appBlacklistPattern *regexp.Regexp
 
 	iis_version simple_version
+}
+
+func (c *IISCollector) GetPerfCounterDependencies() []string {
+	return []string{}
 }
 
 type IISConfig struct {

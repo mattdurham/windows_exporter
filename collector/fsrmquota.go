@@ -7,7 +7,7 @@ import (
 )
 
 func init() {
-	registerCollector("fsrmquota", func() collectorBuilder {
+	registerCollector("fsrmquota", func() CollectorBuilder {
 		return builderFunc(newFSRMQuotaCollector)
 	})
 }
@@ -24,6 +24,10 @@ type FSRMQuotaCollector struct {
 	MatchesTemplate *prometheus.Desc
 	SoftLimit       *prometheus.Desc
 	Template        *prometheus.Desc
+}
+
+func (c *FSRMQuotaCollector) GetPerfCounterDependencies() []string {
+	return []string{}
 }
 
 func newFSRMQuotaCollector() (Collector, error) {

@@ -8,7 +8,7 @@ import (
 )
 
 func init() {
-	registerCollector("system", func() collectorBuilder {
+	registerCollector("system", func() CollectorBuilder {
 		return builderFunc(NewSystemCollector)
 	}, "System")
 }

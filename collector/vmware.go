@@ -10,7 +10,7 @@ import (
 )
 
 func init() {
-	registerCollector("vmware", func() collectorBuilder {
+	registerCollector("vmware", func() CollectorBuilder {
 		return builderFunc(NewVmwareCollector)
 	})
 }

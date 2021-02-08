@@ -11,7 +11,7 @@ import (
 )
 
 func init() {
-	registerCollector("hyperv", func() collectorBuilder {
+	registerCollector("hyperv", func() CollectorBuilder {
 		return builderFunc(NewHyperVCollector)
 	})
 }
@@ -112,6 +112,10 @@ type HyperVCollector struct {
 	VMNetworkDroppedPacketsOutgoing *prometheus.Desc
 	VMNetworkPacketsReceived        *prometheus.Desc
 	VMNetworkPacketsSent            *prometheus.Desc
+}
+
+func (c *HyperVCollector) GetPerfCounterDependencies() []string {
+	return []string{}
 }
 
 // NewHyperVCollector ...

@@ -10,7 +10,7 @@ import (
 )
 
 func init() {
-	registerCollector("dns", func() collectorBuilder {
+	registerCollector("dns", func() CollectorBuilder {
 		return builderFunc(NewDNSCollector)
 	})
 }
@@ -39,6 +39,10 @@ type DNSCollector struct {
 	WinsQueries                   *prometheus.Desc
 	WinsResponses                 *prometheus.Desc
 	UnmatchedResponsesReceived    *prometheus.Desc
+}
+
+func (c *DNSCollector) GetPerfCounterDependencies() []string {
+	return []string{}
 }
 
 // NewDNSCollector ...

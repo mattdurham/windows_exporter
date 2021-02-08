@@ -9,7 +9,7 @@ import (
 )
 
 func init() {
-	registerCollector("netframework_clrlocksandthreads", func() collectorBuilder {
+	registerCollector("netframework_clrlocksandthreads", func() CollectorBuilder {
 		return builderFunc(NewNETFramework_NETCLRLocksAndThreadsCollector)
 	})
 }

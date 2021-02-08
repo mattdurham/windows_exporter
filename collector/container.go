@@ -9,7 +9,7 @@ import (
 )
 
 func init() {
-	registerCollector("container", func() collectorBuilder {
+	registerCollector("container", func() CollectorBuilder {
 		return builderFunc(NewContainerMetricsCollector)
 	})
 }
@@ -38,6 +38,10 @@ type ContainerMetricsCollector struct {
 	PacketsSent            *prometheus.Desc
 	DroppedPacketsIncoming *prometheus.Desc
 	DroppedPacketsOutgoing *prometheus.Desc
+}
+
+func (c *ContainerMetricsCollector) GetPerfCounterDependencies() []string {
+	return []string{}
 }
 
 // NewContainerMetricsCollector constructs a new ContainerMetricsCollector

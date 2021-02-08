@@ -15,7 +15,7 @@ import (
 )
 
 func init() {
-	registerCollector("process", func() collectorBuilder {
+	registerCollector("process", func() CollectorBuilder {
 		return builderFunc(newProcessCollector)
 	}, "Process")
 }

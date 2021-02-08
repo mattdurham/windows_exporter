@@ -9,7 +9,7 @@ import (
 )
 
 func init() {
-	registerCollector("netframework_clrremoting", func() collectorBuilder {
+	registerCollector("netframework_clrremoting", func() CollectorBuilder {
 		return builderFunc(NewNETFramework_NETCLRRemotingCollector)
 	})
 }

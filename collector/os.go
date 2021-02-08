@@ -12,7 +12,7 @@ import (
 )
 
 func init() {
-	registerCollector("os", func() collectorBuilder {
+	registerCollector("os", func() CollectorBuilder {
 		return builderFunc(NewOSCollector)
 	})
 }

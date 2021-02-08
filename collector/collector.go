@@ -58,10 +58,11 @@ func getWindowsVersion() float64 {
 //	 Use *RegisterFlagsForLibrary* when creating an exporter as a library
 //   *Build* is used to create an instance of the collector
 //
-type collectorBuilder interface {
+type CollectorBuilder interface {
 	RegisterFlags(app *kingpin.Application)
 	Build() (Collector, error)
 	RegisterFlagsForLibrary(map[string]string)
+	GetPerfCounterDependencies() []string
 }
 
 type builderFunc func() (Collector, error)
@@ -70,23 +71,15 @@ func (f builderFunc) RegisterFlags(app *kingpin.Application)    {}
 func (f builderFunc) Build() (Collector, error)                 { return f() }
 func (f builderFunc) RegisterFlagsForLibrary(map[string]string) {}
 func (f builderFunc) Setup()                                    {}
+func (f builderFunc) GetPerfCounterDependencies() []string      { return []string{}}
+
 
 var (
-	builders                = make(map[string]func() collectorBuilder)
-	perfCounterDependencies = make(map[string]string)
+	builders                = make(map[string]func() CollectorBuilder)
 )
 
-func registerCollector(name string, builder func() collectorBuilder, perfCounterNames ...string) {
+func registerCollector(name string, builder func() CollectorBuilder) {
 	builders[name] = builder
-	addPerfCounterDependencies(name, perfCounterNames)
-}
-
-func addPerfCounterDependencies(name string, perfCounterNames []string) {
-	perfIndicies := make([]string, 0, len(perfCounterNames))
-	for _, cn := range perfCounterNames {
-		perfIndicies = append(perfIndicies, MapCounterToIndex(cn))
-	}
-	perfCounterDependencies[name] = strings.Join(perfIndicies, " ")
 }
 
 func Available() []string {
@@ -119,12 +112,19 @@ func BuildForLibrary(collector string, settings map[string]string) (Collector, e
 	return c, err
 }
 
-func getPerfQuery(collectors []string) string {
+func addPerfCounterDependencies(perfCounterNames []string) string {
+	perfIndicies := make([]string, 0, len(perfCounterNames))
+	for _, cn := range perfCounterNames {
+		perfIndicies = append(perfIndicies, MapCounterToIndex(cn))
+	}
+	return strings.Join(perfIndicies, " ")
+}
+
+
+func getPerfQuery(collectors []CollectorBuilder) string {
 	parts := make([]string, 0, len(collectors))
 	for _, c := range collectors {
-		if p := perfCounterDependencies[c]; p != "" {
-			parts = append(parts, p)
-		}
+		parts = append(parts, addPerfCounterDependencies(c.GetPerfCounterDependencies()))
 	}
 	return strings.Join(parts, " ")
 }
@@ -136,31 +136,15 @@ type Collector interface {
 
 // Collectors is the set of supported collectors.
 type Collectors struct {
-	builders map[string]collectorBuilder
+	builders map[string]CollectorBuilder
 }
-
-/*
-// NewCollectors creates a new list of collectors.
-func NewCollectors() *Collectors {
-	localBuilders := make(map[string]collectorBuilder, len(builders))
-	for k, v := range builders {
-		// If the builder is a pointer to a struct, make a copy to allow multiple
-		// concurrent sets of Collectors to be defined and configured separately.
-		rv := reflect.ValueOf(v)
-		if rv.Kind() == reflect.Ptr && rv.Elem().Kind() == reflect.Struct {
-			v = reflect.New(rv.Elem().Type()).Interface().(collectorBuilder)
-		}
-		localBuilders[k] = v
-	}
-	return &Collectors{builders: localBuilders}
-}*/
 
 type ScrapeContext struct {
 	perfObjects map[string]*perflib.PerfObject
 }
 
 // PrepareScrapeContext creates a ScrapeContext to be used during a single scrape
-func PrepareScrapeContext(collectors []string) (*ScrapeContext, error) {
+func PrepareScrapeContext(collectors []CollectorBuilder) (*ScrapeContext, error) {
 	q := getPerfQuery(collectors) // TODO: Memoize
 	objs, err := getPerflibSnapshot(q)
 	if err != nil {
@@ -202,4 +186,19 @@ func expandEnabledChildCollectors(enabled string) []string {
 	// Ensure result is ordered, to prevent test failure
 	sort.Strings(result)
 	return result
+}
+
+func getValueFromMap(m map[string]string, key string) string {
+	if v, exists := m[key]; exists {
+		return v
+	}
+	return ""
+}
+
+
+func getValueFromMapWithDefault(m map[string]string, key string, defaultValue string) string {
+	if v, exists := m[key]; exists {
+		return v
+	}
+	return defaultValue
 }

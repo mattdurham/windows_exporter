@@ -10,7 +10,7 @@ import (
 )
 
 func init() {
-	registerCollector("ad", func() collectorBuilder {
+	registerCollector("ad", func() CollectorBuilder {
 		return builderFunc(NewADCollector)
 	})
 }
@@ -78,6 +78,10 @@ type ADCollector struct {
 	SamPasswordChangesTotal                             *prometheus.Desc
 	TombstonedObjectsCollectedTotal                     *prometheus.Desc
 	TombstonedObjectsVisitedTotal                       *prometheus.Desc
+}
+
+func (c *ADCollector) GetPerfCounterDependencies() []string {
+	return []string{}
 }
 
 // NewADCollector ...

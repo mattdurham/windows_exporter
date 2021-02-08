@@ -9,7 +9,7 @@ import (
 )
 
 func init() {
-	registerCollector("netframework_clrinterop", func() collectorBuilder {
+	registerCollector("netframework_clrinterop", func() CollectorBuilder {
 		return builderFunc(NewNETFramework_NETCLRInteropCollector)
 	})
 }
