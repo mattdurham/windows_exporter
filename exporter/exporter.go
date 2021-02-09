@@ -251,41 +251,7 @@ func initWbem() {
 	wmi.DefaultClient.SWbemServicesClient = s
 }
 
-/*
-func CreateLibrary(configYaml string) *WindowsCollector {
-	flattenedConfig, _ := config.NewResolverFromFragment(configYaml)
-	enabledCollectors, exist := flattenedConfig["collectors.enabled"]
-	if exist == false {
-		enabledCollectors = defaultCollectors
-	}
-	initWbem()
-	collectors, err := loadCollectorsForLibrary(enabledCollectors, flattenedConfig)
-	if err != nil {
-		log.Fatalf("Couldn't load collectors: %s", err)
-	}
-	log.Infof("Enabled collectors: %v", strings.Join(keys(collectors), ", "))
-
-	filteredCollectors := make(map[string]collector.Collector)
-	// scrape all enabled collectors if no collector is requested
-	if len(filteredCollectors) == 0 {
-		filteredCollectors = collectors
-	}
-	for name, _ := range filteredCollectors {
-		col, exists := collectors[name]
-		if !exists {
-			fmt.Errorf("unavailable collector: %s", name)
-			return nil
-		}
-		filteredCollectors[name] = col
-	}
-	return &WindowsCollector{
-		Collectors:        filteredCollectors,
-		maxScrapeDuration: time.Duration(10 * float64(time.Second)),
-	}
-
-}
-*/
-
+visu
 func NewWindowsCollector(config map[string]*collector.ConfigInstance) *WindowsCollector {
 	enabledCollectors, exist := config["collectors.enabled"]
 	if exist == false {
