@@ -50,8 +50,8 @@ type NetworkCollector struct {
 	nicWhitelistPattern *regexp.Regexp
 	nicBlacklistPattern *regexp.Regexp
 
-	nicWhiteList string
-	nicBlackList string
+	NicWhiteList string
+	NicBlackList string
 }
 
 func (c *NetworkCollector) GetPerfCounterDependencies() []string {
@@ -59,13 +59,13 @@ func (c *NetworkCollector) GetPerfCounterDependencies() []string {
 }
 
 func (c *NetworkCollector) ApplyConfig(m map[string]*ConfigInstance) {
-	c.nicBlackList = getValueFromMap(m, netNicBlackList.Name)
-	c.nicWhiteList = getValueFromMap(m, netNicWhiteList.Name)
+	c.NicBlackList = getValueFromMap(m, netNicBlackList.Name)
+	c.NicWhiteList = getValueFromMap(m, netNicWhiteList.Name)
 }
 
 func (c *NetworkCollector) Setup() {
-	c.nicWhitelistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", c.nicWhiteList))
-	c.nicBlacklistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", c.nicBlackList))
+	c.nicWhitelistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", c.NicWhiteList))
+	c.nicBlacklistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", c.NicBlackList))
 }
 
 
@@ -162,7 +162,6 @@ func (c *NetworkCollector) Collect(ctx *ScrapeContext, ch chan<- prometheus.Metr
 // mangleNetworkName mangles Network Adapter name (non-alphanumeric to _)
 // that is used in networkInterface.
 func mangleNetworkName(name string) string {
-
 	return nicNameToUnderscore.ReplaceAllString(name, "_")
 }
 

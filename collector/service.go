@@ -11,7 +11,7 @@ import (
 	"github.com/prometheus/common/log"
 )
 
-var whereClase = Config{
+var serviceWhereClause = Config{
 	Name:     "collector.service.services-where",
 	HelpText: "WQL 'where' clause to use in WMI metrics query. Limits the response to the services you specify and reduces the size of the response.",
 	Default:  "",
@@ -19,7 +19,7 @@ var whereClase = Config{
 
 func init() {
 	registerCollectorWithConfig("service", NewserviceCollector, []Config{
-		whereClause,
+		msmqWhereClause,
 	})
 }
 
@@ -40,7 +40,7 @@ func (c *serviceCollector) Setup() {
 }
 
 func (c *serviceCollector) ApplyConfig(m map[string]*ConfigInstance) {
-	c.QueryWhereClause = getValueFromMap(m,whereClause.Name)
+	c.QueryWhereClause = getValueFromMap(m, msmqWhereClause.Name)
 }
 
 // NewserviceCollector ...

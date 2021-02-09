@@ -50,8 +50,8 @@ type processCollector struct {
 	processWhitelistPattern *regexp.Regexp
 	processBlacklistPattern *regexp.Regexp
 
-	processWhiteList string
-	processBlackList string
+	ProcessWhiteList  string
+	ProcessBlackList string
 }
 
 func (c *processCollector) GetPerfCounterDependencies() []string {
@@ -60,16 +60,16 @@ func (c *processCollector) GetPerfCounterDependencies() []string {
 
 
 func (c *processCollector) ApplyConfig(m map[string]*ConfigInstance) {
-	c.processWhiteList = getValueFromMap(m, processWhiteList.Name)
-	c.processBlackList = getValueFromMap(m, processBlackList.Name)
+	c.ProcessWhiteList = getValueFromMap(m, processWhiteList.Name)
+	c.ProcessBlackList = getValueFromMap(m, processBlackList.Name)
 }
 
 func (c *processCollector) Setup() {
-	if c.processWhiteList == ".*" && c.processBlackList == "" {
+	if c.ProcessWhiteList == ".*" && c.ProcessBlackList == "" {
 		log.Warn("No filters specified for process collector. This will generate a very large number of metrics!")
 	}
-	c.processWhitelistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", c.processWhiteList))
-	c.processBlacklistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", c.processBlackList))
+	c.processWhitelistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", c.ProcessWhiteList))
+	c.processBlacklistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", c.ProcessBlackList))
 }
 
 // NewProcessCollector ...

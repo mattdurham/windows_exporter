@@ -11,14 +11,14 @@ import (
 )
 
 
-var whereClause = Config{
+var msmqWhereClause = Config{
 	Name:     "collector.msmq.msmq-where",
 	HelpText: "WQL 'where' clause to use in WMI metrics query. Limits the response to the msmqs you specify and reduces the size of the response.",
 	Default:  "",
 }
 func init() {
 	registerCollectorWithConfig("msmq", NewMSMQCollector, []Config{
-		whereClause,
+		msmqWhereClause,
 	})
 }
 
@@ -34,14 +34,8 @@ type Win32_PerfRawData_MSMQ_MSMQQueueCollector struct {
 }
 
 func (c *Win32_PerfRawData_MSMQ_MSMQQueueCollector) ApplyConfig(m map[string]*ConfigInstance) {
-	c.MSMQWhereClause = getValueFromMap(m,"collector.msmq.msmq-where")
+	c.MSMQWhereClause = getValueFromMap(m,msmqWhereClause.Name)
 }
-
-func (c *Win32_PerfRawData_MSMQ_MSMQQueueCollector) GetPerfCounterDependencies() []string {
-	return []string{}
-}
-
-
 
 func (c *Win32_PerfRawData_MSMQ_MSMQQueueCollector) Setup() {
 	if c.MSMQWhereClause == "" {
