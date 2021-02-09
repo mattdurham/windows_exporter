@@ -39,8 +39,6 @@ type DNSCollector struct {
 	UnmatchedResponsesReceived    *prometheus.Desc
 }
 
-
-
 // NewDNSCollector ...
 func NewDNSCollector() (Collector, error) {
 	const subsystem = "dns"

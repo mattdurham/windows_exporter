@@ -7,7 +7,7 @@ import (
 	"github.com/prometheus/common/log"
 )
 
-var sourcesEnabled = Config{
+var dfsrSourcesEnabled = Config{
 	Name:     "collectors.dfsr.sources-enabled",
 	HelpText: "Comma-seperated list of DFSR Perflib sources to use.",
 	Default:  "connection,folder,volume",
@@ -16,7 +16,7 @@ var sourcesEnabled = Config{
 func init() {
 	log.Info("dfsr collector is in an experimental state! Metrics for this collector have not been tested.")
 	registerCollectorWithConfig("dfsr",dfsrBuild, []Config{
-		sourcesEnabled,
+		dfsrSourcesEnabled,
 	})
 }
 
@@ -76,30 +76,27 @@ type DFSRCollector struct {
 	// Map of child collector functions used during collection
 	dfsrChildCollectors []dfsrCollectorFunc
 
-	PerformanceCounterDependencies []string
+	performanceCounterDependencies []string
 
 	DfsrEnabledCollectors string
 }
 
 func (c *DFSRCollector) GetPerfCounterDependencies() []string {
-	return c.PerformanceCounterDependencies
+	return c.performanceCounterDependencies
 }
 
 func (c *DFSRCollector) ApplyConfig(m map[string]*ConfigInstance) {
-	c.DfsrEnabledCollectors = getValueFromMap(m, sourcesEnabled.Name)
+	c.DfsrEnabledCollectors = getValueFromMap(m, dfsrSourcesEnabled.Name)
 }
 
 func (c *DFSRCollector) Setup() {
 	// Perflib sources are dynamic, depending on the enabled child collectors
 	var perflibDependencies []string
-	for _, source := range expandEnabledChildCollectors(c.DfsrEnabledCollectors) {
+	enabled := expandEnabledChildCollectors(c.DfsrEnabledCollectors)
+	for _, source := range enabled {
 		perflibDependencies = append(perflibDependencies, dfsrGetPerfObjectName(source))
 	}
-	enabled := expandEnabledChildCollectors(c.DfsrEnabledCollectors)
-	perfCounters := make([]string, 0, len(enabled))
-	for _, c := range enabled {
-		perfCounters = append(perfCounters, dfsrGetPerfObjectName(c))
-	}
+	c.performanceCounterDependencies = perflibDependencies
 	c.dfsrChildCollectors = c.getDFSRChildCollectors(enabled)
 }
 
