@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
-	"gopkg.in/alecthomas/kingpin.v2"
 	"regexp"
 )
 
@@ -14,6 +13,19 @@ func init() {
 	log.Info("smtp collector is in an experimental state! Metrics for this collector have not been tested.")
 	registerCollector("smtp", NewSMTPCollector)
 }
+
+var (
+	smtpWhiteList = Config{
+		Name:     "collector.smtp.server-whitelist",
+		HelpText: "Regexp of virtual servers to whitelist. Server name must both match whitelist and not match blacklist to be included.",
+		Default:  ".+",
+	}
+	smtpBlackList = Config{
+		Name:     "collector.smtp.server-blacklist",
+		HelpText: "Regexp of virtual servers to blacklist. Server name must both match whitelist and not match blacklist to be included.",
+		Default:  "",
+	}
+)
 
 type SMTPCollector struct {
 	BadmailedMessagesBadPickupFileTotal     *prometheus.Desc
@@ -70,16 +82,9 @@ func (c *SMTPCollector) GetPerfCounterDependencies() []string {
 	return []string{"SMTP Server"}
 }
 
-
-func (c *SMTPCollector) RegisterFlags(application *kingpin.Application) {
-	application.Flag("collector.smtp.server-whitelist", "Regexp of virtual servers to whitelist. Server name must both match whitelist and not match blacklist to be included.").Default(".+").StringVar(&c.ServerWhitelist)
-	application.Flag("collector.smtp.server-blacklist", "Regexp of virtual servers to blacklist. Server name must both match whitelist and not match blacklist to be included.").StringVar(&c.ServerBlacklist)
-
-}
-
-func (c *SMTPCollector) RegisterFlagsForLibrary(m map[string]string) {
-	c.ServerWhitelist = getValueFromMapWithDefault(m, "collector.smtp.server-whitelist", ".+")
-	c.ServerBlacklist = getValueFromMap(m,"collector.smtp.server-blacklist")
+func (c *SMTPCollector) ApplyConfig(m map[string]*ConfigInstance) {
+	c.ServerWhitelist = getValueFromMap(m, smtpWhiteList.Name)
+	c.ServerBlacklist = getValueFromMap(m,smtpBlackList.Name)
 }
 
 func (c *SMTPCollector) Setup() {

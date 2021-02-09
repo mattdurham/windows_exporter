@@ -9,11 +9,25 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
-	"gopkg.in/alecthomas/kingpin.v2"
 )
 
+	var exchangeList = Config{
+		Name:     "collectors.exchange.list",
+		HelpText: "List the collectors along with their perflib object name/ids",
+		Default:  "false",
+	}
+	var exchangeEnabled = Config{
+		Name:     "collectors.exchange.enabled",
+		HelpText: "Comma-separated list of collectors to use. Defaults to all, if not specified.",
+		Default:  "",
+	}
+
+
 func init() {
-	registerCollector("exchange",newExchangeCollector)
+	registerCollectorWithConfig("exchange",newExchangeCollector, []Config{
+		exchangeList,
+		exchangeEnabled,
+	})
 }
 
 type exchangeCollector struct {
@@ -109,24 +123,13 @@ func (c *exchangeCollector) GetPerfCounterDependencies() []string {
 		"MSExchange RpcClientAccess"}
 }
 
-func (c *exchangeCollector) RegisterFlags(application *kingpin.Application) {
+func (c *exchangeCollector) ApplyConfig(m map[string]*ConfigInstance) {
+	listAll, exists := m[exchangeList.Name]
+	if exists && listAll.Exists {
+		c.ArgExchangeListAllCollectors = exists
+	}
 
-	application.Flag(
-		"collectors.exchange.list",
-		"List the collectors along with their perflib object name/ids",
-	).BoolVar(&c.ArgExchangeListAllCollectors)
-
-	application.Flag(
-		"collectors.exchange.enabled",
-		"Comma-separated list of collectors to use. Defaults to all, if not specified.",
-	).Default("").StringVar(&c.ArgExchangeCollectorsEnabled)
-}
-
-func (c *exchangeCollector) RegisterFlagsForLibrary(m map[string]string) {
-	_, exists := m["collectors.exchange.list"]
-	c.ArgExchangeListAllCollectors = exists
-
-	c.ArgExchangeCollectorsEnabled = getValueFromMapWithDefault(m,"collectors.exchange.enabled","" )
+	c.ArgExchangeCollectorsEnabled = getValueFromMap(m,exchangeEnabled.Name)
 }
 
 
@@ -146,7 +149,7 @@ var (
 )
 
 // newExchangeCollector returns a new Collector
-func newExchangeCollector() (Collector, error) {
+func newExchangeCollector() (CollectorConfig, error) {
 
 	// desc creates a new prometheus description
 	desc := func(metricName string, description string, labels ...string) *prometheus.Desc {

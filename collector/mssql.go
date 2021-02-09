@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -13,7 +14,20 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
 	"golang.org/x/sys/windows/registry"
-	"gopkg.in/alecthomas/kingpin.v2"
+)
+
+
+var (
+	mssqlClassesEnabled = Config{
+		Name:     "collectors.mssql.classes-enabled",
+		HelpText: "Comma-separated list of mssql WMI classes to use.",
+		Default:  mssqlAvailableClassCollectors(),
+	}
+	mssqlClassPrint = Config{
+		Name:     "collectors.mssql.class-print",
+		HelpText: "If true, print available mssql WMI classes and exit.  Only displays if the mssql collector is enabled.",
+		Default:  "false",
+	}
 )
 
 type mssqlInstancesType map[string]string
@@ -114,7 +128,10 @@ func mssqlGetPerfObjectName(sqlInstance string, collector string) string {
 }
 
 func init() {
-	registerCollector("mssql", NewMSSQLCollector)
+	registerCollectorWithConfig("mssql", NewMSSQLCollector, []Config{
+		mssqlClassesEnabled,
+		mssqlClassPrint,
+	})
 }
 
 // A MSSQLCollector is a Prometheus collector for various WMI Win32_PerfRawData_MSSQLSERVER_* metrics
@@ -377,17 +394,6 @@ type MSSQLCollector struct {
 	MssqlPrintCollectors bool
 }
 
-func (c *MSSQLCollector) RegisterFlags(app *kingpin.Application) {
-	app.Flag(
-		"collectors.mssql.classes-enabled",
-		"Comma-separated list of mssql WMI classes to use.").
-		Default(mssqlAvailableClassCollectors()).StringVar(&c.MssqlEnabledCollectors)
-
-	app.Flag(
-		"collectors.mssql.class-print",
-		"If true, print available mssql WMI classes and exit.  Only displays if the mssql collector is enabled.",
-	).BoolVar(&c.MssqlPrintCollectors)
-}
 
 func (c *MSSQLCollector) GetPerfCounterDependencies() []string {
 	enabled := expandEnabledChildCollectors(c.MssqlEnabledCollectors)
@@ -402,7 +408,14 @@ func (c *MSSQLCollector) GetPerfCounterDependencies() []string {
 }
 
 
-func (c *MSSQLCollector) RegisterFlagsForLibrary(m map[string]string) {
+func (c *MSSQLCollector) ApplyConfig(m map[string]*ConfigInstance) {
+	c.MssqlEnabledCollectors = getValueFromMap(m, mssqlClassesEnabled.Name)
+
+	v, err := strconv.ParseBool(getValueFromMap(m, mssqlClassPrint.Name)); if err != nil {
+		c.MssqlPrintCollectors = v
+	} else {
+		c.MssqlPrintCollectors = false
+	}
 }
 
 func (c *MSSQLCollector) Setup() {
@@ -419,7 +432,7 @@ func (c *MSSQLCollector) Setup() {
 }
 
 // NewMSSQLCollector ...
-func NewMSSQLCollector() (Collector, error) {
+func NewMSSQLCollector() (CollectorConfig, error) {
 
 	const subsystem = "mssql"
 

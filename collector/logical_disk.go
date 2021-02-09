@@ -8,11 +8,26 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
-	"gopkg.in/alecthomas/kingpin.v2"
+)
+
+var (
+	diskWhiteList = Config{
+		Name:     "collector.logical_disk.volume-whitelist",
+		HelpText: "Regexp of volumes to whitelist. Volume name must both match whitelist and not match blacklist to be included.",
+		Default:  ".+",
+	}
+	diskBlackList = Config{
+		Name:     "collector.logical_disk.volume-blacklist",
+		HelpText: "Regexp of volumes to blacklist. Volume name must both match whitelist and not match blacklist to be included.",
+		Default:  "",
+	}
 )
 
 func init() {
-	registerCollector("logical_disk", NewLogicalDiskCollector)
+	registerCollectorWithConfig("logical_disk", NewLogicalDiskCollector, []Config{
+		diskWhiteList,
+		diskBlackList,
+	})
 }
 
 // A LogicalDiskCollector is a Prometheus collector for perflib logicalDisk metrics
@@ -36,36 +51,25 @@ type LogicalDiskCollector struct {
 	VolumeBlacklistPattern *regexp.Regexp
 
 	VolumeWhiteList string
-	volumeBlackList string
+	VolumeBlackList string
+}
+
+func (c *LogicalDiskCollector) Setup() {
+	c.VolumeWhitelistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", c.VolumeWhiteList))
+	c.VolumeBlacklistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", c.VolumeBlackList))
 }
 
 func (c *LogicalDiskCollector) GetPerfCounterDependencies() []string {
 	return []string{"LogicalDisk"}
 }
 
-func (c *LogicalDiskCollector) RegisterFlags(application *kingpin.Application) {
-	application.Flag(
-		"collector.logical_disk.volume-whitelist",
-		"Regexp of volumes to whitelist. Volume name must both match whitelist and not match blacklist to be included.",
-	).Default(".+").StringVar(&c.VolumeWhiteList)
-	application.Flag(
-		"collector.logical_disk.volume-blacklist",
-		"Regexp of volumes to blacklist. Volume name must both match whitelist and not match blacklist to be included.",
-	).Default("").StringVar(&c.volumeBlackList)
-}
-
-func (c *LogicalDiskCollector) RegisterFlagsForLibrary(m map[string]string) {
-	c.VolumeWhiteList = getValueFromMapWithDefault(m,"collector.logical_disk.volume-whitelist",".+")
-	c.volumeBlackList = getValueFromMapWithDefault(m, "collector.logical_disk.volume-blacklist","")
-}
-
-func (c *LogicalDiskCollector) Setup(){
-	c.VolumeWhitelistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", c.VolumeWhiteList))
-	c.VolumeBlacklistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", c.volumeBlackList))
+func (c *LogicalDiskCollector) ApplyConfig(m map[string]*ConfigInstance) {
+	c.VolumeWhiteList = getValueFromMap(m, diskWhiteList.Name)
+	c.VolumeBlackList = getValueFromMap(m, diskBlackList.Name)
 }
 
 // NewLogicalDiskCollector ...
-func NewLogicalDiskCollector() (Collector, error) {
+func NewLogicalDiskCollector() (CollectorConfig, error) {
 
 	const subsystem = "logical_disk"
 

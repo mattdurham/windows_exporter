@@ -9,11 +9,18 @@ import (
 	"github.com/StackExchange/wmi"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
-	"gopkg.in/alecthomas/kingpin.v2"
 )
 
+var whereClase = Config{
+	Name:     "collector.service.services-where",
+	HelpText: "WQL 'where' clause to use in WMI metrics query. Limits the response to the services you specify and reduces the size of the response.",
+	Default:  "",
+}
+
 func init() {
-	registerCollector("service", NewserviceCollector)
+	registerCollectorWithConfig("service", NewserviceCollector, []Config{
+		whereClause,
+	})
 }
 
 // A serviceCollector is a Prometheus collector for WMI Win32_Service metrics
@@ -26,25 +33,18 @@ type serviceCollector struct {
 	QueryWhereClause string
 }
 
-func (c *serviceCollector) RegisterFlags(app *kingpin.Application) {
-	kingpin.Flag(
-		"collector.service.services-where",
-		"WQL 'where' clause to use in WMI metrics query. Limits the response to the services you specify and reduces the size of the response.",
-	).Default("").StringVar(&c.QueryWhereClause)
-}
-
 func (c *serviceCollector) Setup() {
 	if c.QueryWhereClause == "" {
 		log.Warn("No where-clause specified for service collector. This will generate a very large number of metrics!")
 	}
 }
 
-func (c *serviceCollector) RegisterFlagsForLibrary(m map[string]string) {
-	c.QueryWhereClause = getValueFromMapWithDefault(m,"collector.service.services-where", "" )
+func (c *serviceCollector) ApplyConfig(m map[string]*ConfigInstance) {
+	c.QueryWhereClause = getValueFromMap(m,whereClause.Name)
 }
 
 // NewserviceCollector ...
-func NewserviceCollector() (Collector, error) {
+func NewserviceCollector() (CollectorConfig, error) {
 	const subsystem = "service"
 
 

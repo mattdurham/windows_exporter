@@ -11,11 +11,25 @@ import (
 	"github.com/StackExchange/wmi"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
-	"gopkg.in/alecthomas/kingpin.v2"
 )
 
+var (
+	processWhiteList = Config{
+		Name:     "collector.process.whitelist",
+		HelpText: "Regexp of processes to include. Process name must both match whitelist and not match blacklist to be included.",
+		Default:  ".*",
+	}
+	processBlackList = Config{
+		Name:     "collector.process.blacklist",
+		HelpText: "Regexp of processes to exclude. Process name must both match whitelist and not match blacklist to be included.",
+		Default:  "",
+	}
+)
 func init() {
-	registerCollector("process", newProcessCollector)
+	registerCollectorWithConfig("process", newProcessCollector, []Config{
+		processBlackList,
+		processWhiteList,
+	})
 }
 
 type processCollector struct {
@@ -44,29 +58,10 @@ func (c *processCollector) GetPerfCounterDependencies() []string {
 	return []string{"Process"}
 }
 
-func (c *processCollector) RegisterFlags(app *kingpin.Application) {
-	app.Flag(
-		"collector.process.whitelist",
-		"Regexp of processes to include. Process name must both match whitelist and not match blacklist to be included.",
-	).Default(".*").StringVar(&c.processWhiteList)
-	app.Flag(
-		"collector.process.blacklist",
-		"Regexp of processes to exclude. Process name must both match whitelist and not match blacklist to be included.",
-	).Default("").StringVar(&c.processBlackList)
-}
 
-func (c *processCollector) RegisterFlagsForLibrary(m map[string]string) {
-	processWhiteList, exists := m["collector.process.whitelist"]
-	if exists == false {
-		processWhiteList = ".*"
-	}
-	c.processWhiteList = processWhiteList
-
-	processBlackList, exists := m["collector.process.blacklist"]
-	if exists == false {
-		processBlackList = ""
-	}
-	c.processBlackList = processBlackList
+func (c *processCollector) ApplyConfig(m map[string]*ConfigInstance) {
+	c.processWhiteList = getValueFromMap(m, processWhiteList.Name)
+	c.processBlackList = getValueFromMap(m, processBlackList.Name)
 }
 
 func (c *processCollector) Setup() {
@@ -78,7 +73,7 @@ func (c *processCollector) Setup() {
 }
 
 // NewProcessCollector ...
-func newProcessCollector() (Collector, error) {
+func newProcessCollector() (CollectorConfig, error) {
 	const subsystem = "process"
 
 	return &processCollector{

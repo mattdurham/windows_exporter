@@ -8,11 +8,26 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
-	"gopkg.in/alecthomas/kingpin.v2"
 )
 
+
+var (
+	netNicBlackList = Config{
+		Name:     "collector.net.nic-blacklist",
+		HelpText: "Regexp of NIC:s to blacklist. NIC name must both match whitelist and not match blacklist to be included.",
+		Default:  "",
+	}
+	netNicWhiteList = Config{
+		Name:     "collector.net.nic-whitelist",
+		HelpText: "Regexp of NIC:s to whitelist. NIC name must both match whitelist and not match blacklist to be included.",
+		Default:  ".+",
+	}
+)
 func init() {
-	registerCollector("net", NewNetworkCollector)
+	registerCollectorWithConfig("net", NewNetworkCollector, []Config{
+		netNicBlackList,
+		netNicWhiteList,
+	})
 }
 
 var nicNameToUnderscore = regexp.MustCompile("[^a-zA-Z0-9]")
@@ -43,29 +58,9 @@ func (c *NetworkCollector) GetPerfCounterDependencies() []string {
 	return []string{"Network Interface"}
 }
 
-func (c *NetworkCollector) RegisterFlags(application *kingpin.Application) {
-	application.Flag(
-		"collector.net.nic-blacklist",
-		"Regexp of NIC:s to blacklist. NIC name must both match whitelist and not match blacklist to be included.",
-	).Default("").StringVar(&c.nicBlackList)
-	application.Flag(
-		"collector.net.nic-whitelist",
-		"Regexp of NIC:s to whitelist. NIC name must both match whitelist and not match blacklist to be included.",
-	).Default(".+").StringVar(&c.nicWhiteList)
-}
-
-func (c *NetworkCollector) RegisterFlagsForLibrary(m map[string]string) {
-	nicBlackList, exists := m["collector.net.nic-blacklist"]
-	if exists == false {
-		nicBlackList = ""
-	}
-	c.nicBlackList = nicBlackList
-
-	nicWhiteList, exists := m["collector.net.nic-whitelist"]
-	if exists == false {
-		nicWhiteList = ".+"
-	}
-	c.nicWhiteList = nicWhiteList
+func (c *NetworkCollector) ApplyConfig(m map[string]*ConfigInstance) {
+	c.nicBlackList = getValueFromMap(m, netNicBlackList.Name)
+	c.nicWhiteList = getValueFromMap(m, netNicWhiteList.Name)
 }
 
 func (c *NetworkCollector) Setup() {
@@ -75,7 +70,7 @@ func (c *NetworkCollector) Setup() {
 
 
 // NewNetworkCollector ...
-func NewNetworkCollector() (Collector, error) {
+func NewNetworkCollector() (CollectorConfig, error) {
 	const subsystem = "net"
 
 	return &NetworkCollector{

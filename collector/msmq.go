@@ -8,11 +8,18 @@ import (
 	"github.com/StackExchange/wmi"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
-	"gopkg.in/alecthomas/kingpin.v2"
 )
 
+
+var whereClause = Config{
+	Name:     "collector.msmq.msmq-where",
+	HelpText: "WQL 'where' clause to use in WMI metrics query. Limits the response to the msmqs you specify and reduces the size of the response.",
+	Default:  "",
+}
 func init() {
-	registerCollector("msmq", NewMSMQCollector)
+	registerCollectorWithConfig("msmq", NewMSMQCollector, []Config{
+		whereClause,
+	})
 }
 
 // A Win32_PerfRawData_MSMQ_MSMQQueueCollector is a Prometheus collector for WMI Win32_PerfRawData_MSMQ_MSMQQueue metrics
@@ -26,26 +33,23 @@ type Win32_PerfRawData_MSMQ_MSMQQueueCollector struct {
 
 }
 
+func (c *Win32_PerfRawData_MSMQ_MSMQQueueCollector) ApplyConfig(m map[string]*ConfigInstance) {
+	c.MSMQWhereClause = getValueFromMap(m,"collector.msmq.msmq-where")
+}
+
 func (c *Win32_PerfRawData_MSMQ_MSMQQueueCollector) GetPerfCounterDependencies() []string {
 	return []string{}
 }
 
-func (c *Win32_PerfRawData_MSMQ_MSMQQueueCollector) RegisterFlags(app *kingpin.Application) {
-	app.Flag("collector.msmq.msmq-where", "WQL 'where' clause to use in WMI metrics query. Limits the response to the msmqs you specify and reduces the size of the response.").StringVar(&c.MSMQWhereClause)
-}
+
 
 func (c *Win32_PerfRawData_MSMQ_MSMQQueueCollector) Setup() {
 	if c.MSMQWhereClause == "" {
 		log.Warn("No where-clause specified for msmq collector. This will generate a very large number of metrics!")
 	}}
 
-func (c *Win32_PerfRawData_MSMQ_MSMQQueueCollector) RegisterFlagsForLibrary(m map[string]string) {
-	c.MSMQWhereClause = getValueFromMap(m,"collector.msmq.msmq-where")
-
-}
-
 // NewWin32_PerfRawData_MSMQ_MSMQQueueCollector ...
-func NewMSMQCollector() (Collector, error) {
+func NewMSMQCollector() (CollectorConfig, error) {
 	const subsystem = "msmq"
 
 	return &Win32_PerfRawData_MSMQ_MSMQQueueCollector{

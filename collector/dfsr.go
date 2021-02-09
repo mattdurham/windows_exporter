@@ -5,12 +5,19 @@ package collector
 import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
-	"gopkg.in/alecthomas/kingpin.v2"
 )
+
+var sourcesEnabled = Config{
+	Name:     "collectors.dfsr.sources-enabled",
+	HelpText: "Comma-seperated list of DFSR Perflib sources to use.",
+	Default:  "connection,folder,volume",
+}
 
 func init() {
 	log.Info("dfsr collector is in an experimental state! Metrics for this collector have not been tested.")
-	registerCollector("dfsr",dfsrBuild)
+	registerCollectorWithConfig("dfsr",dfsrBuild, []Config{
+		sourcesEnabled,
+	})
 }
 
 // DFSRCollector contains the metric and state data of the DFSR collectors.
@@ -78,13 +85,8 @@ func (c *DFSRCollector) GetPerfCounterDependencies() []string {
 	return c.PerformanceCounterDependencies
 }
 
-
-func (c *DFSRCollector) RegisterFlags(application *kingpin.Application) {
-	application.Flag("collectors.dfsr.sources-enabled", "Comma-seperated list of DFSR Perflib sources to use.").Default("connection,folder,volume").StringVar(&c.DfsrEnabledCollectors)
-}
-
-func (c *DFSRCollector) RegisterFlagsForLibrary(m map[string]string) {
-	c.DfsrEnabledCollectors = getValueFromMapWithDefault(m, "collectors.dfsr.sources-enabled",  "connection,folder,volume")
+func (c *DFSRCollector) ApplyConfig(m map[string]*ConfigInstance) {
+	c.DfsrEnabledCollectors = getValueFromMap(m, sourcesEnabled.Name)
 }
 
 func (c *DFSRCollector) Setup() {
@@ -98,11 +100,10 @@ func (c *DFSRCollector) Setup() {
 	for _, c := range enabled {
 		perfCounters = append(perfCounters, dfsrGetPerfObjectName(c))
 	}
-
 	c.dfsrChildCollectors = c.getDFSRChildCollectors(enabled)
 }
 
-func dfsrBuild() (Collector, error) {
+func dfsrBuild() (CollectorConfig, error) {
 
 	const subsystem = "dfsr"
 
@@ -411,9 +412,6 @@ func dfsrBuild() (Collector, error) {
 			nil,
 		),
 	}
-
-
-
 	return &dfsrCollector, nil
 }
 

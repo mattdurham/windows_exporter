@@ -52,47 +52,110 @@ func getWindowsVersion() float64 {
 }
 
 var (
-	builders                = make(map[string]func () (Collector, error))
+	builders                = make(map[string]buildFunc)
+	configMap               = make(map[string]Config)
+	configInstanceMap       = make(map[string]*ConfigInstance)
 )
 
+/*
+These whole build* interfaces and functions are to enforce compile time checks for the RegisterCollector classes.
+TODO find a better way to do this
+ */
+type buildFunc interface {
+	build() (Collector, error)
+}
+
+type buildInstance struct {
+	instanceBuilder func() (Collector, error)
+}
+
+func (b *buildInstance) build() (Collector, error) {
+	return b.instanceBuilder()
+}
+
+
+type buildConfigInstance struct {
+	instanceBuilder func() (CollectorConfig, error)
+}
+
+func (b *buildConfigInstance) build() (Collector, error) {
+	return b.instanceBuilder()
+}
+
 func registerCollector(name string, builder func() (Collector, error)) {
-	builders[name] = builder
+	instance := buildInstance{instanceBuilder: builder}
+	builders[name] = &instance
+}
+
+func registerCollectorWithConfig(name string, builder func() (CollectorConfig, error), config []Config) {
+	instance := buildConfigInstance{instanceBuilder: builder}
+	builders[name] = &instance
+	for _,v := range config {
+		ci := &ConfigInstance{
+			Value:  "",
+			Config: v,
+		}
+		configInstanceMap[v.Name] = ci
+		configMap[v.Name] = v
+	}
+}
+
+func ApplyKingpinConfig(app *kingpin.Application) map[string]*ConfigInstance {
+	for _,v := range configInstanceMap {
+		app.Flag(v.Name,v.HelpText).Default(v.Default).Action(setExists).StringVar(&v.Value)
+	}
+	return configInstanceMap
+}
+
+func setExists(ctx *kingpin.ParseContext) error {
+	for _,v := range ctx.Elements {
+		name := ""
+		if c, ok := v.Clause.(*kingpin.CmdClause); ok {
+			name = c.Model().Name
+		} else if c, ok := v.Clause.(*kingpin.FlagClause); ok {
+			name = c.Model().Name
+		} else if c, ok := v.Clause.(*kingpin.ArgClause); ok {
+			name = c.Model().Name
+		} else {
+			continue
+		}
+		configInstanceMap[name].Exists = true
+	}
+
+	return nil
+}
+
+type Config struct {
+	Name string
+	HelpText string
+	Default string
+}
+
+type ConfigInstance struct {
+	Value string
+	Exists bool
+	Config
 }
 
 func Available() []string {
-	available := make([]string, 0, len(builders))
+	cs := make([]string, 0, len(builders))
 	for c := range builders {
-		available = append(available, c)
+		cs = append(cs, c)
 	}
-	return available
+	return cs
 }
 
-func Build(collector string, app *kingpin.Application) (Collector, error) {
+func Build(collector string, settings map[string]*ConfigInstance) (Collector, error) {
 	builder, exists := builders[collector]
 	if !exists {
 		return nil, fmt.Errorf("Unknown collector %q", collector)
 	}
-	c, err := builder()
+	c, err := builder.build()
 	if err != nil {
 		return nil, err
 	}
 	if v, ok := c.(CollectorConfig) ; ok {
-		v.RegisterFlags(app)
-	}
-	return c, err
-}
-
-func BuildForLibrary(collector string, settings map[string]string) (Collector, error) {
-	builder, exists := builders[collector]
-	if !exists {
-		return nil, fmt.Errorf("Unknown collector %q", collector)
-	}
-	c, err := builder()
-	if err != nil {
-		return nil, err
-	}
-	if v, ok := c.(CollectorConfig) ; ok {
-		v.RegisterFlagsForLibrary(settings)
+		v.ApplyConfig(settings)
 	}
 	return c, err
 }
@@ -110,7 +173,10 @@ func getPerfQuery(collectors []Collector) string {
 	parts := make([]string, 0, len(collectors))
 	for _, c := range collectors {
 		if v, ok := c.(CollectorPerf) ; ok {
-			parts = append(parts, addPerfCounterDependencies(v.GetPerfCounterDependencies()))
+			pq := v.GetPerfCounterDependencies()
+			if len(pq) > 0 {
+				parts = append(parts, addPerfCounterDependencies(pq))
+			}
 		}
 	}
 	return strings.Join(parts, " ")
@@ -121,19 +187,26 @@ type Collector interface {
 	Collect(ctx *ScrapeContext, ch chan<- prometheus.Metric) (err error)
 }
 
+/*
+This interface is used when a Collector needs to have configuration. This code should support multiple collectors of
+the same type which means we cannot use the global var based configuration.
+
+RegisterFlags is used when running this as a standalone executable
+RegisterFlagsForLibrary is used when running as a library
+Setup is used for any checking that needs to happen before the collector starts
+ */
 type CollectorConfig interface {
-	RegisterFlags(app *kingpin.Application)
+	Collect(ctx *ScrapeContext, ch chan<- prometheus.Metric) (err error)
+	ApplyConfig(map[string]*ConfigInstance)
 	Setup()
-	RegisterFlagsForLibrary(map[string]string)
+
 }
 
+/*
+This interface is used when a Collector needs to expose Performance Counter dependencies.
+ */
 type CollectorPerf interface {
 	GetPerfCounterDependencies() []string
-}
-
-// Collectors is the set of supported collectors.
-type Collectors struct {
-	builders map[string]Collector
 }
 
 type ScrapeContext struct {
@@ -185,17 +258,12 @@ func expandEnabledChildCollectors(enabled string) []string {
 	return result
 }
 
-func getValueFromMap(m map[string]string, key string) string {
+func getValueFromMap(m map[string]*ConfigInstance, key string) string {
 	if v, exists := m[key]; exists {
-		return v
+		if v.Exists {
+			return v.Value
+		}
+		return v.Default
 	}
 	return ""
-}
-
-
-func getValueFromMapWithDefault(m map[string]string, key string, defaultValue string) string {
-	if v, exists := m[key]; exists {
-		return v
-	}
-	return defaultValue
 }

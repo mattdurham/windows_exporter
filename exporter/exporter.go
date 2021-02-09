@@ -222,11 +222,11 @@ func expandEnabledCollectors(enabled string) []string {
 	return result
 }
 
-func loadCollectors(list string, app *kingpin.Application) (map[string]collector.Collector, error) {
+func loadCollectors(list string, config map[string]*collector.ConfigInstance) (map[string]collector.Collector, error) {
 	collectors := map[string]collector.Collector{}
 	enabled := expandEnabledCollectors(list)
 	for _, name := range enabled {
-		c, err := collector.Build(name, app)
+		c, err := collector.Build(name, config)
 		if err != nil {
 			return nil, err
 		}
@@ -235,24 +235,6 @@ func loadCollectors(list string, app *kingpin.Application) (map[string]collector
 		}
 		collectors[name] = c
 	}
-
-	return collectors, nil
-}
-
-func loadCollectorsForLibrary(list string, config map[string]string) (map[string]collector.Collector, error) {
-	collectors := map[string]collector.Collector{}
-	enabled := expandEnabledCollectors(list)
-	for _, name := range enabled {
-		c, err := collector.BuildForLibrary(name, config)
-		if err != nil {
-			return nil, err
-		}
-		if v, ok := c.(collector.CollectorConfig) ; ok {
-			v.Setup()
-		}
-		collectors[name] = c
-	}
-
 	return collectors, nil
 }
 
@@ -269,6 +251,7 @@ func initWbem() {
 	wmi.DefaultClient.SWbemServicesClient = s
 }
 
+/*
 func CreateLibrary(configYaml string) *WindowsCollector {
 	flattenedConfig, _ := config.NewResolverFromFragment(configYaml)
 	enabledCollectors, exist := flattenedConfig["collectors.enabled"]
@@ -301,6 +284,40 @@ func CreateLibrary(configYaml string) *WindowsCollector {
 	}
 
 }
+*/
+
+func NewWindowsCollector(config map[string]*collector.ConfigInstance) *WindowsCollector {
+	enabledCollectors, exist := config["collectors.enabled"]
+	if exist == false {
+		enabledCollectors.Value = defaultCollectors
+	}
+	initWbem()
+	collectors, err := loadCollectors(enabledCollectors.Value, config)
+	if err != nil {
+		log.Fatalf("Couldn't load collectors: %s", err)
+	}
+	log.Infof("Enabled collectors: %v", strings.Join(keys(collectors), ", "))
+
+	filteredCollectors := make(map[string]collector.Collector)
+	// scrape all enabled collectors if no collector is requested
+	if len(filteredCollectors) == 0 {
+		filteredCollectors = collectors
+	}
+	for name, _ := range filteredCollectors {
+		col, exists := collectors[name]
+		if !exists {
+			fmt.Errorf("unavailable collector: %s", name)
+			return nil
+		}
+		filteredCollectors[name] = col
+	}
+	return &WindowsCollector{
+		Collectors:        filteredCollectors,
+		maxScrapeDuration: time.Duration(10 * float64(time.Second)),
+	}
+
+}
+
 
 func StartExecutable() {
 
@@ -335,12 +352,12 @@ func StartExecutable() {
 			"Seconds to subtract from the timeout allowed by the client. Tune to allow for overhead or high loads.",
 		).Default("0.5").Float64()
 	)
-
+	configMap := collector.ApplyKingpinConfig(kingpinApp)
 	log.AddFlags(kingpin.CommandLine)
 	kingpinApp.Version(version.Print("windows_exporter"))
 	kingpinApp.HelpFlag.Short('h')
 
-	// Load values from configuration file(s). Executable flags must first be parsed, in order
+	// Load values from configuration file(s). Executable flags must first be parsed, in orderF
 	// to load the specified file(s).
 	kingpinApp.Parse(os.Args[1:])
 
@@ -356,7 +373,6 @@ func StartExecutable() {
 		// Parse flags once more to include those discovered in configuration file(s).
 		kingpinApp.Parse(os.Args[1:])
 	}
-
 	if *printCollectors {
 		collectors := collector.Available()
 		collectorNames := make(sort.StringSlice, 0, len(collectors))
@@ -387,8 +403,7 @@ func StartExecutable() {
 			}
 		}()
 	}
-
-	collectors, err := loadCollectors(*enabledCollectors, kingpinApp)
+	collectors, err := loadCollectors(*enabledCollectors, configMap)
 	if err != nil {
 		log.Fatalf("Couldn't load collectors: %s", err)
 	}
