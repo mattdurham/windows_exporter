@@ -51,6 +51,13 @@ func getWindowsVersion() float64 {
 	return currentv_flt
 }
 
+/*
+Builders contains the function necessary to build a new collector
+ConfigMap contains the collection of Configuration options used for the kingpin integration
+ConfigInstanceMap contains the actual values for the config, when used as a standalone the Instance is a singleton,
+	when used as a Library it is not used at all but instead of map is passed into the NewWindowsCollector to instantiate
+	from that specific configuration
+ */
 var (
 	builders                = make(map[string]buildFunc)
 	configMap               = make(map[string]Config)
@@ -107,6 +114,9 @@ func ApplyKingpinConfig(app *kingpin.Application) map[string]*ConfigInstance {
 	return configInstanceMap
 }
 
+/*
+This exists mostly to support the Bool parameter
+ */
 func setExists(ctx *kingpin.ParseContext) error {
 	for _,v := range ctx.Elements {
 		name := ""
@@ -125,12 +135,18 @@ func setExists(ctx *kingpin.ParseContext) error {
 	return nil
 }
 
+/*
+Used to hole the metadata about a configuration option
+ */
 type Config struct {
 	Name string
 	HelpText string
 	Default string
 }
 
+/*
+Used to hold the actual values for a configuration option
+ */
 type ConfigInstance struct {
 	Value string
 	Exists bool
