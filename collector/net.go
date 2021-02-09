@@ -8,24 +8,29 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
-	"gopkg.in/alecthomas/kingpin.v2"
 )
 
-func init() {
-	registerCollector("net", NewNetworkCollector, "Network Interface")
-}
 
 var (
-	nicWhitelist = kingpin.Flag(
-		"collector.net.nic-whitelist",
-		"Regexp of NIC:s to whitelist. NIC name must both match whitelist and not match blacklist to be included.",
-	).Default(".+").String()
-	nicBlacklist = kingpin.Flag(
-		"collector.net.nic-blacklist",
-		"Regexp of NIC:s to blacklist. NIC name must both match whitelist and not match blacklist to be included.",
-	).Default("").String()
-	nicNameToUnderscore = regexp.MustCompile("[^a-zA-Z0-9]")
+	netNicBlackList = Config{
+		Name:     "collector.net.nic-blacklist",
+		HelpText: "Regexp of NIC:s to blacklist. NIC name must both match whitelist and not match blacklist to be included.",
+		Default:  "",
+	}
+	netNicWhiteList = Config{
+		Name:     "collector.net.nic-whitelist",
+		HelpText: "Regexp of NIC:s to whitelist. NIC name must both match whitelist and not match blacklist to be included.",
+		Default:  ".+",
+	}
 )
+func init() {
+	registerCollectorWithConfig("net", NewNetworkCollector, []Config{
+		netNicBlackList,
+		netNicWhiteList,
+	})
+}
+
+var nicNameToUnderscore = regexp.MustCompile("[^a-zA-Z0-9]")
 
 // A NetworkCollector is a Prometheus collector for Perflib Network Interface metrics
 type NetworkCollector struct {
@@ -44,10 +49,28 @@ type NetworkCollector struct {
 
 	nicWhitelistPattern *regexp.Regexp
 	nicBlacklistPattern *regexp.Regexp
+
+	NicWhiteList string
+	NicBlackList string
 }
 
+func (c *NetworkCollector) GetPerfCounterDependencies() []string {
+	return []string{"Network Interface"}
+}
+
+func (c *NetworkCollector) ApplyConfig(m map[string]*ConfigInstance) {
+	c.NicBlackList = getValueFromMap(m, netNicBlackList.Name)
+	c.NicWhiteList = getValueFromMap(m, netNicWhiteList.Name)
+}
+
+func (c *NetworkCollector) Setup() {
+	c.nicWhitelistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", c.NicWhiteList))
+	c.nicBlacklistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", c.NicBlackList))
+}
+
+
 // NewNetworkCollector ...
-func NewNetworkCollector() (Collector, error) {
+func NewNetworkCollector() (CollectorConfig, error) {
 	const subsystem = "net"
 
 	return &NetworkCollector{
@@ -123,9 +146,6 @@ func NewNetworkCollector() (Collector, error) {
 			[]string{"nic"},
 			nil,
 		),
-
-		nicWhitelistPattern: regexp.MustCompile(fmt.Sprintf("^(?:%s)$", *nicWhitelist)),
-		nicBlacklistPattern: regexp.MustCompile(fmt.Sprintf("^(?:%s)$", *nicBlacklist)),
 	}, nil
 }
 

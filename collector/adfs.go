@@ -7,7 +7,7 @@ import (
 )
 
 func init() {
-	registerCollector("adfs", newADFSCollector, "AD FS")
+	registerCollector("adfs", newADFSCollector)
 }
 
 type adfsCollector struct {
@@ -22,6 +22,10 @@ type adfsCollector struct {
 	passwordChangeSucceeded          *prometheus.Desc
 	tokenRequests                    *prometheus.Desc
 	windowsIntegratedAuthentications *prometheus.Desc
+}
+
+func (c *adfsCollector) GetPerfCounterDependencies() []string {
+	return []string{"AD FS"}
 }
 
 // newADFSCollector constructs a new adfsCollector

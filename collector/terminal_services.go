@@ -14,9 +14,12 @@ import (
 const ConnectionBrokerFeatureID uint32 = 133
 
 func init() {
-	registerCollector("terminal_services", NewTerminalServicesCollector, "Terminal Services", "Terminal Services Session", "Remote Desktop Connection Broker Counterset")
+	registerCollector("terminal_services", func() (Collector,error) {
+		return NewTerminalServicesCollector()
+	}, )
 }
 
+// This global should be fine, since it is an aspect of the machine
 var (
 	connectionBrokerEnabled = isConnectionBrokerServer()
 )
@@ -62,6 +65,10 @@ type TerminalServicesCollector struct {
 	VirtualBytesPeak            *prometheus.Desc
 	WorkingSet                  *prometheus.Desc
 	WorkingSetPeak              *prometheus.Desc
+}
+
+func (c *TerminalServicesCollector) GetPerfCounterDependencies() []string {
+	return []string{"Terminal Services", "Terminal Services Session", "Remote Desktop Connection Broker Counterset"}
 }
 
 // NewTerminalServicesCollector ...

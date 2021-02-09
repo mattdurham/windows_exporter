@@ -8,7 +8,7 @@ import (
 )
 
 func init() {
-	registerCollector("system", NewSystemCollector, "System")
+	registerCollector("system", NewSystemCollector)
 }
 
 // A SystemCollector is a Prometheus collector for WMI metrics
@@ -19,6 +19,10 @@ type SystemCollector struct {
 	SystemCallsTotal         *prometheus.Desc
 	SystemUpTime             *prometheus.Desc
 	Threads                  *prometheus.Desc
+}
+
+func (c *SystemCollector) GetPerfCounterDependencies() []string {
+	return []string{"System"}
 }
 
 // NewSystemCollector ...

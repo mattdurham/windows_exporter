@@ -5,20 +5,19 @@ package collector
 import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
-	"gopkg.in/alecthomas/kingpin.v2"
 )
 
-var dfsrEnabledCollectors = kingpin.Flag("collectors.dfsr.sources-enabled", "Comma-seperated list of DFSR Perflib sources to use.").Default("connection,folder,volume").String()
+var dfsrSourcesEnabled = Config{
+	Name:     "collectors.dfsr.sources-enabled",
+	HelpText: "Comma-seperated list of DFSR Perflib sources to use.",
+	Default:  "connection,folder,volume",
+}
 
 func init() {
 	log.Info("dfsr collector is in an experimental state! Metrics for this collector have not been tested.")
-	// Perflib sources are dynamic, depending on the enabled child collectors
-	var perflibDependencies []string
-	for _, source := range expandEnabledChildCollectors(*dfsrEnabledCollectors) {
-		perflibDependencies = append(perflibDependencies, dfsrGetPerfObjectName(source))
-	}
-
-	registerCollector("dfsr", NewDFSRCollector, perflibDependencies...)
+	registerCollectorWithConfig("dfsr",dfsrBuild, []Config{
+		dfsrSourcesEnabled,
+	})
 }
 
 // DFSRCollector contains the metric and state data of the DFSR collectors.
@@ -76,36 +75,34 @@ type DFSRCollector struct {
 
 	// Map of child collector functions used during collection
 	dfsrChildCollectors []dfsrCollectorFunc
+
+	performanceCounterDependencies []string
+
+	DfsrEnabledCollectors string
 }
 
-type dfsrCollectorFunc func(ctx *ScrapeContext, ch chan<- prometheus.Metric) error
+func (c *DFSRCollector) GetPerfCounterDependencies() []string {
+	return c.performanceCounterDependencies
+}
 
-// Map Perflib sources to DFSR collector names
-// E.G. volume -> DFS Replication Service Volumes
-func dfsrGetPerfObjectName(collector string) string {
-	prefix := "DFS "
-	suffix := ""
-	switch collector {
-	case "connection":
-		suffix = "Replication Connections"
-	case "folder":
-		suffix = "Replicated Folders"
-	case "volume":
-		suffix = "Replication Service Volumes"
+func (c *DFSRCollector) ApplyConfig(m map[string]*ConfigInstance) {
+	c.DfsrEnabledCollectors = getValueFromMap(m, dfsrSourcesEnabled.Name)
+}
+
+func (c *DFSRCollector) Setup() {
+	// Perflib sources are dynamic, depending on the enabled child collectors
+	var perflibDependencies []string
+	enabled := expandEnabledChildCollectors(c.DfsrEnabledCollectors)
+	for _, source := range enabled {
+		perflibDependencies = append(perflibDependencies, dfsrGetPerfObjectName(source))
 	}
-	return (prefix + suffix)
+	c.performanceCounterDependencies = perflibDependencies
+	c.dfsrChildCollectors = c.getDFSRChildCollectors(enabled)
 }
 
-// NewDFSRCollector is registered
-func NewDFSRCollector() (Collector, error) {
+func dfsrBuild() (CollectorConfig, error) {
+
 	const subsystem = "dfsr"
-
-	enabled := expandEnabledChildCollectors(*dfsrEnabledCollectors)
-	perfCounters := make([]string, 0, len(enabled))
-	for _, c := range enabled {
-		perfCounters = append(perfCounters, dfsrGetPerfObjectName(c))
-	}
-	addPerfCounterDependencies(subsystem, perfCounters)
 
 	dfsrCollector := DFSRCollector{
 		// meta
@@ -412,10 +409,25 @@ func NewDFSRCollector() (Collector, error) {
 			nil,
 		),
 	}
-
-	dfsrCollector.dfsrChildCollectors = dfsrCollector.getDFSRChildCollectors(enabled)
-
 	return &dfsrCollector, nil
+}
+
+type dfsrCollectorFunc func(ctx *ScrapeContext, ch chan<- prometheus.Metric) error
+
+// Map Perflib sources to DFSR collector names
+// E.G. volume -> DFS Replication Service Volumes
+func dfsrGetPerfObjectName(collector string) string {
+	prefix := "DFS "
+	suffix := ""
+	switch collector {
+	case "connection":
+		suffix = "Replication Connections"
+	case "folder":
+		suffix = "Replicated Folders"
+	case "volume":
+		suffix = "Replication Service Volumes"
+	}
+	return (prefix + suffix)
 }
 
 // Maps enabled child collectors names to their relevant collection function,

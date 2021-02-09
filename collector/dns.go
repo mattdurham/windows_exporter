@@ -4,7 +4,6 @@ package collector
 
 import (
 	"errors"
-
 	"github.com/StackExchange/wmi"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"

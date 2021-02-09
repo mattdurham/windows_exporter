@@ -10,7 +10,7 @@ import (
 )
 
 func init() {
-	registerCollector("remote_fx", NewRemoteFx, "RemoteFX Network", "RemoteFX Graphics")
+	registerCollector("remote_fx", NewRemoteFx)
 }
 
 // A RemoteFxNetworkCollector is a Prometheus collector for
@@ -39,6 +39,10 @@ type RemoteFxCollector struct {
 	InputFramesPerSecond                        *prometheus.Desc
 	OutputFramesPerSecond                       *prometheus.Desc
 	SourceFramesPerSecond                       *prometheus.Desc
+}
+
+func (c *RemoteFxCollector) GetPerfCounterDependencies() []string {
+	return []string{ "RemoteFX Network", "RemoteFX Graphics"}
 }
 
 // NewRemoteFx ...

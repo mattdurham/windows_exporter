@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -13,19 +14,20 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
 	"golang.org/x/sys/windows/registry"
-	"gopkg.in/alecthomas/kingpin.v2"
 )
 
-var (
-	mssqlEnabledCollectors = kingpin.Flag(
-		"collectors.mssql.classes-enabled",
-		"Comma-separated list of mssql WMI classes to use.").
-		Default(mssqlAvailableClassCollectors()).String()
 
-	mssqlPrintCollectors = kingpin.Flag(
-		"collectors.mssql.class-print",
-		"If true, print available mssql WMI classes and exit.  Only displays if the mssql collector is enabled.",
-	).Bool()
+var (
+	mssqlClassesEnabled = Config{
+		Name:     "collectors.mssql.classes-enabled",
+		HelpText: "Comma-separated list of mssql WMI classes to use.",
+		Default:  mssqlAvailableClassCollectors(),
+	}
+	mssqlClassPrint = Config{
+		Name:     "collectors.mssql.class-print",
+		HelpText: "If true, print available mssql WMI classes and exit.  Only displays if the mssql collector is enabled.",
+		Default:  "false",
+	}
 )
 
 type mssqlInstancesType map[string]string
@@ -126,7 +128,10 @@ func mssqlGetPerfObjectName(sqlInstance string, collector string) string {
 }
 
 func init() {
-	registerCollector("mssql", NewMSSQLCollector)
+	registerCollectorWithConfig("mssql", NewMSSQLCollector, []Config{
+		mssqlClassesEnabled,
+		mssqlClassPrint,
+	})
 }
 
 // A MSSQLCollector is a Prometheus collector for various WMI Win32_PerfRawData_MSSQLSERVER_* metrics
@@ -385,14 +390,13 @@ type MSSQLCollector struct {
 	mssqlInstances             mssqlInstancesType
 	mssqlCollectors            mssqlCollectorsMap
 	mssqlChildCollectorFailure int
+	MssqlEnabledCollectors string
+	MssqlPrintCollectors bool
 }
 
-// NewMSSQLCollector ...
-func NewMSSQLCollector() (Collector, error) {
 
-	const subsystem = "mssql"
-
-	enabled := expandEnabledChildCollectors(*mssqlEnabledCollectors)
+func (c *MSSQLCollector) GetPerfCounterDependencies() []string {
+	enabled := expandEnabledChildCollectors(c.MssqlEnabledCollectors)
 	mssqlInstances := getMSSQLInstances()
 	perfCounters := make([]string, 0, len(mssqlInstances)*len(enabled))
 	for instance := range mssqlInstances {
@@ -400,7 +404,37 @@ func NewMSSQLCollector() (Collector, error) {
 			perfCounters = append(perfCounters, mssqlGetPerfObjectName(instance, c))
 		}
 	}
-	addPerfCounterDependencies(subsystem, perfCounters)
+	return perfCounters
+}
+
+
+func (c *MSSQLCollector) ApplyConfig(m map[string]*ConfigInstance) {
+	c.MssqlEnabledCollectors = getValueFromMap(m, mssqlClassesEnabled.Name)
+
+	v, err := strconv.ParseBool(getValueFromMap(m, mssqlClassPrint.Name)); if err != nil {
+		c.MssqlPrintCollectors = v
+	} else {
+		c.MssqlPrintCollectors = false
+	}
+}
+
+func (c *MSSQLCollector) Setup() {
+	c.mssqlInstances =  getMSSQLInstances()
+	if c.MssqlPrintCollectors {
+		fmt.Printf("Available SQLServer Classes:\n")
+		for name := range c.mssqlCollectors {
+			fmt.Printf(" - %s\n", name)
+		}
+		os.Exit(0)
+	}
+
+
+}
+
+// NewMSSQLCollector ...
+func NewMSSQLCollector() (CollectorConfig, error) {
+
+	const subsystem = "mssql"
 
 	mssqlCollector := MSSQLCollector{
 		// meta
@@ -1788,19 +1822,9 @@ func NewMSSQLCollector() (Collector, error) {
 			[]string{"mssql_instance"},
 			nil,
 		),
-
-		mssqlInstances: mssqlInstances,
 	}
 
 	mssqlCollector.mssqlCollectors = mssqlCollector.getMSSQLCollectors()
-
-	if *mssqlPrintCollectors {
-		fmt.Printf("Available SQLServer Classes:\n")
-		for name := range mssqlCollector.mssqlCollectors {
-			fmt.Printf(" - %s\n", name)
-		}
-		os.Exit(0)
-	}
 
 	return &mssqlCollector, nil
 }
@@ -1844,7 +1868,7 @@ func (c *MSSQLCollector) execute(ctx *ScrapeContext, name string, fn mssqlCollec
 func (c *MSSQLCollector) Collect(ctx *ScrapeContext, ch chan<- prometheus.Metric) error {
 	wg := sync.WaitGroup{}
 
-	enabled := expandEnabledChildCollectors(*mssqlEnabledCollectors)
+	enabled := expandEnabledChildCollectors(c.MssqlEnabledCollectors)
 	for sqlInstance := range c.mssqlInstances {
 		for _, name := range enabled {
 			function := c.mssqlCollectors[name]

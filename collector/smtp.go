@@ -6,18 +6,25 @@ import (
 	"fmt"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
-	"gopkg.in/alecthomas/kingpin.v2"
 	"regexp"
 )
 
 func init() {
 	log.Info("smtp collector is in an experimental state! Metrics for this collector have not been tested.")
-	registerCollector("smtp", NewSMTPCollector, "SMTP Server")
+	registerCollector("smtp", NewSMTPCollector)
 }
 
 var (
-	serverWhitelist = kingpin.Flag("collector.smtp.server-whitelist", "Regexp of virtual servers to whitelist. Server name must both match whitelist and not match blacklist to be included.").Default(".+").String()
-	serverBlacklist = kingpin.Flag("collector.smtp.server-blacklist", "Regexp of virtual servers to blacklist. Server name must both match whitelist and not match blacklist to be included.").String()
+	smtpWhiteList = Config{
+		Name:     "collector.smtp.server-whitelist",
+		HelpText: "Regexp of virtual servers to whitelist. Server name must both match whitelist and not match blacklist to be included.",
+		Default:  ".+",
+	}
+	smtpBlackList = Config{
+		Name:     "collector.smtp.server-blacklist",
+		HelpText: "Regexp of virtual servers to blacklist. Server name must both match whitelist and not match blacklist to be included.",
+		Default:  "",
+	}
 )
 
 type SMTPCollector struct {
@@ -66,9 +73,28 @@ type SMTPCollector struct {
 
 	serverWhitelistPattern *regexp.Regexp
 	serverBlacklistPattern *regexp.Regexp
+
+	ServerWhitelist string
+	ServerBlacklist string
+}
+
+func (c *SMTPCollector) GetPerfCounterDependencies() []string {
+	return []string{"SMTP Server"}
+}
+
+func (c *SMTPCollector) ApplyConfig(m map[string]*ConfigInstance) {
+	c.ServerWhitelist = getValueFromMap(m, smtpWhiteList.Name)
+	c.ServerBlacklist = getValueFromMap(m,smtpBlackList.Name)
+}
+
+func (c *SMTPCollector) Setup() {
+	c.serverWhitelistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", c.ServerWhitelist))
+	c.serverBlacklistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", c.ServerBlacklist))
+
 }
 
 func NewSMTPCollector() (Collector, error) {
+
 	const subsystem = "smtp"
 
 	return &SMTPCollector{
@@ -324,9 +350,6 @@ func NewSMTPCollector() (Collector, error) {
 			[]string{"site"},
 			nil,
 		),
-
-		serverWhitelistPattern: regexp.MustCompile(fmt.Sprintf("^(?:%s)$", *serverWhitelist)),
-		serverBlacklistPattern: regexp.MustCompile(fmt.Sprintf("^(?:%s)$", *serverBlacklist)),
 	}, nil
 }
 

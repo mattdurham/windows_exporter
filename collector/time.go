@@ -4,13 +4,12 @@ package collector
 
 import (
 	"errors"
-
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
 )
 
 func init() {
-	registerCollector("time", newTimeCollector, "Windows Time Service")
+	registerCollector("time", newTimeCollector)
 }
 
 // TimeCollector is a Prometheus collector for Perflib counter metrics
@@ -21,6 +20,10 @@ type TimeCollector struct {
 	NTPRoundtripDelay                *prometheus.Desc
 	NTPServerIncomingRequestsTotal   *prometheus.Desc
 	NTPServerOutgoingResponsesTotal  *prometheus.Desc
+}
+
+func (c *TimeCollector) GetPerfCounterDependencies() []string {
+	return []string{"Windows Time Service"}
 }
 
 func newTimeCollector() (Collector, error) {
