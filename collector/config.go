@@ -5,7 +5,7 @@ import (
 )
 
 var (
-	configMap         = make(map[string]Config)
+	ConfigMap         = make(map[string]Config)
 	configInstanceMap = make(map[string]*ConfigInstance)
 )
 
@@ -36,7 +36,7 @@ func addConfig(config []Config) {
 			Config: v,
 		}
 		configInstanceMap[v.Name] = ci
-		configMap[v.Name] = v
+		ConfigMap[v.Name] = v
 	}
 }
 
@@ -72,7 +72,6 @@ func setExists(ctx *kingpin.ParseContext) error {
 		}
 		value.IsValueSet = true
 	}
-
 	return nil
 }
 

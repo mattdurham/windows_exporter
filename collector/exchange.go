@@ -23,6 +23,8 @@ var exchangeEnabled = Config{
 }
 
 
+
+
 func init() {
 	registerCollectorWithConfig("exchange",newExchangeCollector, []Config{
 		exchangeList,

@@ -38,7 +38,7 @@ type prometheusVersion struct {
 }
 
 const (
-	defaultCollectors            = "cpu,cs,logical_disk,net,os,service,system"
+	defaultCollectors            = "cpu,cs,logical_disk,net,os,service,system,textfile"
 	defaultCollectorsPlaceholder = "[defaults]"
 	serviceName                  = "windows_exporter"
 )
@@ -89,9 +89,7 @@ const (
 // prometheus.
 func (coll WindowsCollector) Collect(ch chan<- prometheus.Metric) {
 	t := time.Now()
-	collectors := make([]collector.Collector, 0, len(coll.Collectors))
-
-	cs := make([]string, 0, len(collectors))
+	cs := make([]string, 0, len(coll.Collectors))
 	for name := range coll.Collectors {
 		cs = append(cs, name)
 	}
