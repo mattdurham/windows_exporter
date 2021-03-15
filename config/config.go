@@ -14,7 +14,6 @@
 package config
 
 import (
-	"github.com/prometheus-community/windows_exporter/collector"
 	"io/ioutil"
 	"os"
 
@@ -57,36 +56,6 @@ func NewResolver(file string) (*Resolver, error) {
 		}
 	}
 	return &Resolver{flags: flags}, nil
-}
-
-
-// NewResolver returns a Resolver structure.
-func MapFromConfig(config string) (map[string]*collector.ConfigInstance, error) {
-	flags := make(map[string]*collector.ConfigInstance)
-
-	var rawValues map[string]interface{}
-	err := yaml.Unmarshal([]byte(config), &rawValues)
-	if err != nil {
-		return nil, err
-	}
-	// Flatten nested YAML values
-	flattenedValues := flatten(rawValues)
-	for k,v := range collector.ConfigMap {
-		if configValue, ok := flattenedValues[k]; ok {
-			flags[k] = &collector.ConfigInstance{
-				Value:      configValue,
-				IsValueSet: true,
-				Config:     v,
-			}
-		} else {
-			flags[k] = &collector.ConfigInstance{
-				Value:      configValue,
-				IsValueSet: false,
-				Config:     v,
-			}
-		}
-	}
-	return flags,nil
 }
 
 func (c *Resolver) setDefault(v getFlagger) {

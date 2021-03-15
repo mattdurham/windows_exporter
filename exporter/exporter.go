@@ -220,11 +220,12 @@ func expandEnabledCollectors(enabled string) []string {
 	return result
 }
 
-func loadCollectors(list string, config map[string]*collector.ConfigInstance) (map[string]collector.Collector, error) {
+func loadCollectors(list string, config map[string]collector.Config) (map[string]collector.Collector, error) {
 	collectors := map[string]collector.Collector{}
 	enabled := expandEnabledCollectors(list)
 	for _, name := range enabled {
-		c, err := collector.Build(name, config)
+		cc := config[name]
+		c, err := collector.Build(name, cc)
 		if err != nil {
 			return nil, err
 		}
@@ -247,13 +248,12 @@ func initWbem() {
 }
 
 // Used to instantiate a new collector for use in a library
-func NewWindowsCollector(config map[string]*collector.ConfigInstance) *WindowsCollector {
-	enabledCollectors, exist := config["collectors.enabled"]
-	if exist == false {
-		enabledCollectors.Value = defaultCollectors
+func NewWindowsCollector(enabledCollectors string, config map[string]collector.Config) *WindowsCollector {
+	if enabledCollectors == "" {
+		enabledCollectors = defaultCollectors
 	}
 	initWbem()
-	collectors, err := loadCollectors(enabledCollectors.Value, config)
+	collectors, err := loadCollectors(enabledCollectors, config)
 	if err != nil {
 		log.Fatalf("Couldn't load collectors: %s", err)
 	}
@@ -264,7 +264,6 @@ func NewWindowsCollector(config map[string]*collector.ConfigInstance) *WindowsCo
 	}
 
 }
-
 
 func StartExecutable() {
 
@@ -299,6 +298,7 @@ func StartExecutable() {
 			"Seconds to subtract from the timeout allowed by the client. Tune to allow for overhead or high loads.",
 		).Default("0.5").Float64()
 	)
+	configMap := collector.GenerateConfigsWithKingpin(kingpinApp)
 	log.AddFlags(kingpin.CommandLine)
 	kingpinApp.Version(version.Print("windows_exporter"))
 	kingpinApp.HelpFlag.Short('h')
@@ -319,6 +319,7 @@ func StartExecutable() {
 		// Parse flags once more to include those discovered in configuration file(s).
 		kingpinApp.Parse(os.Args[1:])
 	}
+
 	if *printCollectors {
 		collectors := collector.Available()
 		collectorNames := make(sort.StringSlice, 0, len(collectors))
@@ -350,8 +351,6 @@ func StartExecutable() {
 		}()
 	}
 
-	// Take our config/cmd line parameters and transform them into a map
-	configMap := collector.ApplyKingpinConfig(kingpinApp)
 	collectors, err := loadCollectors(*enabledCollectors, configMap)
 	if err != nil {
 		log.Fatalf("Couldn't load collectors: %s", err)

@@ -4,41 +4,53 @@ package collector
 
 import (
 	"fmt"
+	"gopkg.in/alecthomas/kingpin.v2"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
 )
 
-var exchangeList = Config{
-	Name:     "collectors.exchange.list",
-	HelpText: "List the collectors along with their perflib object name/ids",
-	Default:  "false",
-}
-var exchangeEnabled = Config{
-	Name:     "collectors.exchange.enabled",
-	HelpText: "Comma-separated list of collectors to use. Defaults to all, if not specified.",
-	Default:  "",
+type ExchangeConfig struct {
+	list    bool
+	enabled string
 }
 
+const list = "collectors.exchange.list"
+const enabled = "collectors.exchange.enabled"
 
+func (ec *ExchangeConfig) LoadConfigFromKingPin(ka *kingpin.Application) {
+	ka.Flag(list, "List the collectors along with their perflib object name/ids").BoolVar(&ec.list)
+	ka.Flag(enabled, "Comma-separated list of collectors to use. Defaults to all, if not specified.").StringVar(&ec.enabled)
+}
 
+func (ec *ExchangeConfig) LoadConfigFromMap(m map[string]string) {
+	if v, err := strconv.ParseBool(m[list]); err != nil {
+		ec.list = v
+	}
+	ec.enabled = m[enabled]
+}
+
+func newExchangeConfig() Config {
+	return &ExchangeConfig{
+		list:    false,
+		enabled: "",
+	}
+}
 
 func init() {
-	registerCollectorWithConfig("exchange",newExchangeCollector, []Config{
-		exchangeList,
-		exchangeEnabled,
-	},
-	"MSExchange ADAccess Processes",
-	"MSExchangeTransport Queues",
-	"MSExchange HttpProxy",
-	"MSExchange ActiveSync",
-	"MSExchange Availability Service",
-	"MSExchange OWA",
-	"MSExchangeAutodiscover",
-	"MSExchange WorkloadManagement Workloads",
-	"MSExchange RpcClientAccess",
+	registerCollectorWithConfig("exchange", newExchangeCollector, newExchangeConfig,
+		"MSExchange ADAccess Processes",
+		"MSExchangeTransport Queues",
+		"MSExchange HttpProxy",
+		"MSExchange ActiveSync",
+		"MSExchange Availability Service",
+		"MSExchange OWA",
+		"MSExchangeAutodiscover",
+		"MSExchange WorkloadManagement Workloads",
+		"MSExchange RpcClientAccess",
 	)
 }
 
@@ -87,14 +99,7 @@ type exchangeCollector struct {
 	ArgExchangeCollectorsEnabled string
 }
 
-
-func (c *exchangeCollector) ApplyConfig(m map[string]*ConfigInstance) {
-	listAll, exists := m[exchangeList.Name]
-	if exists && listAll.IsValueSet {
-		c.ArgExchangeListAllCollectors = exists
-	}
-
-	c.ArgExchangeCollectorsEnabled = getValueFromMap(m,exchangeEnabled)
+func (c *exchangeCollector) ApplyConfig(config *ExchangeConfig) {
 	collectorDesc := map[string]string{
 		"ADAccessProcesses":   "[19108] MSExchange ADAccess Processes",
 		"TransportQueues":     "[20524] MSExchangeTransport Queues",
@@ -107,7 +112,7 @@ func (c *exchangeCollector) ApplyConfig(m map[string]*ConfigInstance) {
 		"RpcClientAccess":     "[29336] MSExchange RpcClientAccess",
 	}
 
-	if c.ArgExchangeListAllCollectors {
+	if config.list {
 		fmt.Printf("%-32s %-32s\n", "Collector Name", "[PerfID] Perflib Object")
 		for _, cname := range exchangeAllCollectorNames {
 			fmt.Printf("%-32s %-32s\n", cname, collectorDesc[cname])
@@ -115,7 +120,7 @@ func (c *exchangeCollector) ApplyConfig(m map[string]*ConfigInstance) {
 		os.Exit(0)
 	}
 
-	if c.ArgExchangeCollectorsEnabled == "" {
+	if config.enabled == "" {
 		for _, collectorName := range exchangeAllCollectorNames {
 			c.enabledCollectors = append(c.enabledCollectors, collectorName)
 		}
@@ -129,7 +134,6 @@ func (c *exchangeCollector) ApplyConfig(m map[string]*ConfigInstance) {
 		}
 	}
 }
-
 
 var (
 	// All available collector functions
@@ -147,8 +151,8 @@ var (
 )
 
 // newExchangeCollector returns a new Collector
-func newExchangeCollector() (Collector, error) {
-
+func newExchangeCollector(config Config) (Collector, error) {
+	ecConfig := config.(*ExchangeConfig)
 	// desc creates a new prometheus description
 	desc := func(metricName string, description string, labels ...string) *prometheus.Desc {
 		return prometheus.NewDesc(
@@ -200,6 +204,7 @@ func newExchangeCollector() (Collector, error) {
 
 		enabledCollectors: make([]string, 0, len(exchangeAllCollectorNames)),
 	}
+	c.ApplyConfig(ecConfig)
 	return &c, nil
 }
 

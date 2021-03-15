@@ -51,7 +51,7 @@ type MemoryCollector struct {
 }
 
 // NewMemoryCollector ...
-func NewMemoryCollector() (Collector, error) {
+func NewMemoryCollector(_ Config) (Collector, error) {
 	const subsystem = "memory"
 
 	return &MemoryCollector{

@@ -50,14 +50,8 @@ func getWindowsVersion() float64 {
 	return currentv_flt
 }
 
-type collectorBuilder func() (Collector, error)
+type collectorBuilder func(c Config) (Collector, error)
 
-/*
-Builders contains the function necessary to build a new collector
-ConfigMap contains the collection of Configuration options used for the kingpin integration
-ConfigInstanceMap contains the actual values for the config, when used as a standalone the Instance is a singleton,
-	when used as a Library it is not used at all but instead created from the config
-*/
 var (
 	builders                = make(map[string]collectorBuilder)
 	perfCounterDependencies = make(map[string]string)
@@ -76,9 +70,9 @@ func registerCollector(name string, builder collectorBuilder, perfCounterNames .
 	addPerfCounterDependencies(name, perfCounterNames)
 }
 
-func registerCollectorWithConfig(name string, builder collectorBuilder, config []Config, perfCounterNames ...string) {
+func registerCollectorWithConfig(name string, builder collectorBuilder, createConfig func() Config, perfCounterNames ...string) {
 	builders[name] = builder
-	addConfig(config)
+	ConfigMap[name] = createConfig
 	addPerfCounterDependencies(name, perfCounterNames)
 }
 
@@ -90,20 +84,34 @@ func Available() []string {
 	return cs
 }
 
-func Build(collector string, settings map[string]*ConfigInstance) (Collector, error) {
+func BuildForLibrary(collector string, settings map[string]string) (Collector, error) {
 	builder, exists := builders[collector]
 	if !exists {
 		return nil, fmt.Errorf("Unknown collector %q", collector)
 	}
-	c, err := builder()
+	configBuilder, exists := ConfigMap[collector]
+	var config Config
+	if exists {
+		config = configBuilder()
+		config.LoadConfigFromMap(settings)
+	}
+	c, err := builder(config)
 	if err != nil {
 		return nil, err
 	}
-	// If the collector is configurable then pass the instance of the config
-	if v, ok := c.(ConfigurableCollector); ok {
-		v.ApplyConfig(settings)
+	return c, nil
+}
+
+func Build(collector string, config Config) (Collector, error) {
+	builder, exists := builders[collector]
+	if !exists {
+		return nil, fmt.Errorf("Unknown collector %q", collector)
 	}
-	return c, err
+	c, err := builder(config)
+	if err != nil {
+		return nil, err
+	}
+	return c, nil
 }
 
 func getPerfQuery(collectors []string) string {

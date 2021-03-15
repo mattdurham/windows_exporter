@@ -25,7 +25,7 @@ type TCPCollector struct {
 }
 
 // NewTCPCollector ...
-func NewTCPCollector() (Collector, error) {
+func NewTCPCollector(_ Config) (Collector, error) {
 	const subsystem = "tcp"
 
 	return &TCPCollector{

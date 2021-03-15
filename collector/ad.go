@@ -80,7 +80,7 @@ type ADCollector struct {
 }
 
 // NewADCollector ...
-func NewADCollector() (Collector, error) {
+func NewADCollector(_ Config) (Collector, error) {
 	const subsystem = "ad"
 	return &ADCollector{
 		AddressBookOperationsTotal: prometheus.NewDesc(

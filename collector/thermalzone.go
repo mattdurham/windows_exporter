@@ -18,7 +18,7 @@ type thermalZoneCollector struct {
 }
 
 // NewThermalZoneCollector ...
-func NewThermalZoneCollector() (Collector, error) {
+func NewThermalZoneCollector(_ Config) (Collector, error) {
 	const subsystem = "thermalzone"
 	return &thermalZoneCollector{
 		Temperature: prometheus.NewDesc(
