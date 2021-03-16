@@ -324,7 +324,7 @@ func StartExecutable() {
 	kingpinApp.Version(version.Print("windows_exporter"))
 	kingpinApp.HelpFlag.Short('h')
 
-	// Load values from configuration file(s). Executable flags must first be parsed, in orderF
+	// Load values from configuration file(s). Executable flags must first be parsed, in order
 	// to load the specified file(s).
 	if *configFile != "" {
 		resolver, err := config.NewResolver(*configFile)
