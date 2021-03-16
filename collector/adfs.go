@@ -25,7 +25,7 @@ type adfsCollector struct {
 }
 
 // newADFSCollector constructs a new adfsCollector
-func newADFSCollector(_ Config) (Collector, error) {
+func newADFSCollector() (Collector, error) {
 	const subsystem = "adfs"
 
 	return &adfsCollector{

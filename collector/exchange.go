@@ -17,7 +17,7 @@ type exchangeConfig struct {
 	enabled *string
 }
 
-func (e *exchangeConfig) RegisterKingpin(ka *kingpin.Application) {
+func (e *exchangeConfig) registerKingpin(ka *kingpin.Application) {
 	ka.Flag("collectors.exchange.list", "List the collectors along with their perflib object name/ids").BoolVar(e.list)
 	ka.Flag("collectors.exchange.enabled", "Comma-separated List of collectors to use. Defaults to all, if not specified.").StringVar(e.enabled)
 }
@@ -83,26 +83,19 @@ type exchangeCollector struct {
 	ArgExchangeCollectorsEnabled string
 }
 
-func (c *exchangeCollector) ApplyConfig(config *exchangeConfig) {
-	collectorDesc := map[string]string{
-		"ADAccessProcesses":   "[19108] MSExchange ADAccess Processes",
-		"TransportQueues":     "[20524] MSExchangeTransport Queues",
-		"HttpProxy":           "[36934] MSExchange HttpProxy",
-		"ActiveSync":          "[25138] MSExchange ActiveSync",
-		"AvailabilityService": "[24914] MSExchange Availability Service",
-		"OutlookWebAccess":    "[24618] MSExchange OWA",
-		"Autodiscover":        "[29240] MSExchange Autodiscover",
-		"WorkloadManagement":  "[19430] MSExchange WorkloadManagement Workloads",
-		"RpcClientAccess":     "[29336] MSExchange RpcClientAccess",
-	}
+var collectorDesc = map[string]string{
+	"ADAccessProcesses":   "[19108] MSExchange ADAccess Processes",
+	"TransportQueues":     "[20524] MSExchangeTransport Queues",
+	"HttpProxy":           "[36934] MSExchange HttpProxy",
+	"ActiveSync":          "[25138] MSExchange ActiveSync",
+	"AvailabilityService": "[24914] MSExchange Availability Service",
+	"OutlookWebAccess":    "[24618] MSExchange OWA",
+	"Autodiscover":        "[29240] MSExchange Autodiscover",
+	"WorkloadManagement":  "[19430] MSExchange WorkloadManagement Workloads",
+	"RpcClientAccess":     "[29336] MSExchange RpcClientAccess",
+}
 
-	if *config.list {
-		fmt.Printf("%-32s %-32s\n", "Collector Name", "[PerfID] Perflib Object")
-		for _, cname := range exchangeAllCollectorNames {
-			fmt.Printf("%-32s %-32s\n", cname, collectorDesc[cname])
-		}
-		os.Exit(0)
-	}
+func (c *exchangeCollector) ApplyConfig(config *exchangeConfig) {
 
 	if *config.enabled == "" {
 		for _, collectorName := range exchangeAllCollectorNames {
@@ -137,6 +130,13 @@ var (
 // newExchangeCollector returns a new Collector
 func newExchangeCollector(config Config) (Collector, error) {
 	ecConfig := config.(*exchangeConfig)
+	if *ecConfig.list {
+		fmt.Printf("%-32s %-32s\n", "Collector Name", "[PerfID] Perflib Object")
+		for _, cname := range exchangeAllCollectorNames {
+			fmt.Printf("%-32s %-32s\n", cname, collectorDesc[cname])
+		}
+		os.Exit(0)
+	}
 	// desc creates a new prometheus description
 	desc := func(metricName string, description string, labels ...string) *prometheus.Desc {
 		return prometheus.NewDesc(

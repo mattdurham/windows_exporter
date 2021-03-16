@@ -21,7 +21,7 @@ type NETFramework_NETCLRJitCollector struct {
 }
 
 // NewNETFramework_NETCLRJitCollector ...
-func NewNETFramework_NETCLRJitCollector(_ Config) (Collector, error) {
+func NewNETFramework_NETCLRJitCollector() (Collector, error) {
 	const subsystem = "netframework_clrjit"
 	return &NETFramework_NETCLRJitCollector{
 		NumberofMethodsJitted: prometheus.NewDesc(

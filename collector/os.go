@@ -33,7 +33,7 @@ type OSCollector struct {
 }
 
 // NewOSCollector ...
-func NewOSCollector(_ Config) (Collector, error) {
+func NewOSCollector() (Collector, error) {
 	const subsystem = "os"
 
 	return &OSCollector{

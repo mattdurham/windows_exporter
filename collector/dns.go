@@ -41,7 +41,7 @@ type DNSCollector struct {
 }
 
 // NewDNSCollector ...
-func NewDNSCollector(_ Config) (Collector, error) {
+func NewDNSCollector() (Collector, error) {
 	const subsystem = "dns"
 	return &DNSCollector{
 		ZoneTransferRequestsReceived: prometheus.NewDesc(

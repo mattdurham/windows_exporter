@@ -39,7 +39,7 @@ type VmwareCollector struct {
 }
 
 // NewVmwareCollector constructs a new VmwareCollector
-func NewVmwareCollector(_ Config) (Collector, error) {
+func NewVmwareCollector() (Collector, error) {
 	const subsystem = "vmware"
 	return &VmwareCollector{
 		MemActive: prometheus.NewDesc(

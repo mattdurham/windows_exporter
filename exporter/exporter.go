@@ -225,12 +225,19 @@ func loadCollectors(list string, config map[string]collector.Config) (map[string
 	collectors := map[string]collector.Collector{}
 	enabled := expandEnabledCollectors(list)
 	for _, name := range enabled {
-		cc := config[name]
-		c, err := collector.Build(name, cc)
-		if err != nil {
-			return nil, err
+		if cc, exists := config[name]; exists {
+			c, err := collector.BuildForConfig(name, cc)
+			if err != nil {
+				return nil, err
+			}
+			collectors[name] = c
+		} else {
+			c, err := collector.Build(name)
+			if err != nil {
+				return nil, err
+			}
+			collectors[name] = c
 		}
-		collectors[name] = c
 	}
 	return collectors, nil
 }

@@ -26,7 +26,7 @@ func init() {
 	registerCollectorWithConfig("iis", NewIISCollector, func() Config { return &iisConfig{} })
 }
 
-func (c *iisConfig) RegisterKingpin(ka *kingpin.Application) {
+func (c *iisConfig) registerKingpin(ka *kingpin.Application) {
 	ka.Flag("collector.iis.site-whitelist", "Regexp of sites to whitelist. Site name must both match whitelist and not match blacklist to be included.").Default(".+").StringVar(&c.siteWhiteList)
 	ka.Flag("collector.iis.site-blacklist", "Regexp of sites to blacklist. Site name must both match whitelist and not match blacklist to be included.").StringVar(&c.siteBlackList)
 	ka.Flag("collector.iis.app-whitelist", "Regexp of apps to whitelist. App name must both match whitelist and not match blacklist to be included.").Default(".+").StringVar(&c.appWhiteList)

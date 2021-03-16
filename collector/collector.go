@@ -52,17 +52,30 @@ func getWindowsVersion() float64 {
 }
 
 type Config interface {
-	RegisterKingpin(ka *kingpin.Application)
+	registerKingpin(ka *kingpin.Application)
 }
 
 type configBuilder func() Config
-type collectorBuilder func(c Config) (Collector, error)
+type collectorBuilder func() (Collector, error)
+type configurableCollectorBuilder func(c Config) (Collector, error)
 
 var (
 	builders                = make(map[string]collectorBuilder)
+	configBasedBuilders     = make(map[string]configurableCollectorBuilder)
 	perfCounterDependencies = make(map[string]string)
-	configMap               = make(map[string]configBuilder)
+	configBuilders          = make(map[string]configBuilder)
 )
+
+func registerCollector(name string, builder collectorBuilder, perfCounterNames ...string) {
+	builders[name] = builder
+	addPerfCounterDependencies(name, perfCounterNames)
+}
+
+func registerCollectorWithConfig(name string, builder configurableCollectorBuilder, config configBuilder, perfCounterNames ...string) {
+	configBasedBuilders[name] = builder
+	configBuilders[name] = config
+	addPerfCounterDependencies(name, perfCounterNames)
+}
 
 func addPerfCounterDependencies(name string, perfCounterNames []string) {
 	perfIndicies := make([]string, 0, len(perfCounterNames))
@@ -72,35 +85,31 @@ func addPerfCounterDependencies(name string, perfCounterNames []string) {
 	perfCounterDependencies[name] = strings.Join(perfIndicies, " ")
 }
 
-func registerCollector(name string, builder collectorBuilder, perfCounterNames ...string) {
-	builders[name] = builder
-	addPerfCounterDependencies(name, perfCounterNames)
-}
-
-func registerCollectorWithConfig(name string, builder collectorBuilder, config configBuilder, perfCounterNames ...string) {
-	builders[name] = builder
-	configMap[name] = config
-	addPerfCounterDependencies(name, perfCounterNames)
-}
-
 func Available() []string {
-	cs := make([]string, 0, len(builders))
+	cs := make([]string, 0, len(builders)+len(configBasedBuilders))
 	for c := range builders {
+		cs = append(cs, c)
+	}
+	for c := range configBasedBuilders {
 		cs = append(cs, c)
 	}
 	return cs
 }
 
-func Build(collector string, config Config) (Collector, error) {
+func Build(collector string) (Collector, error) {
 	builder, exists := builders[collector]
 	if !exists {
 		return nil, fmt.Errorf("Unknown collector %q", collector)
 	}
-	c, err := builder(config)
-	if err != nil {
-		return nil, err
+	return builder()
+}
+
+func BuildForConfig(collector string, config Config) (Collector, error) {
+	builder, exists := configBasedBuilders[collector]
+	if !exists {
+		return nil, fmt.Errorf("Unknown collector %q", collector)
 	}
-	return c, nil
+	return builder(config)
 }
 
 func getPerfQuery(collectors []string) string {
@@ -149,7 +158,7 @@ func find(slice []string, val string) bool {
 	return false
 }
 
-// Used by more complex collectors where user input specifies Enabled child collectors.
+// Used by more complex collectors where user input specifies enabled child collectors.
 // Splits provided child collectors and deduplicate.
 func expandEnabledChildCollectors(enabled string) []string {
 	separated := strings.Split(enabled, ",")
@@ -169,10 +178,10 @@ func expandEnabledChildCollectors(enabled string) []string {
 }
 
 func GenerateConfigs(ka *kingpin.Application) map[string]Config {
-	cm := make(map[string]Config, len(configMap))
-	for k, v := range configMap {
+	cm := make(map[string]Config, len(configBuilders))
+	for k, v := range configBuilders {
 		c := v()
-		c.RegisterKingpin(ka)
+		c.registerKingpin(ka)
 		cm[k] = c
 	}
 	return cm
