@@ -52,7 +52,7 @@ func getWindowsVersion() float64 {
 }
 
 type Config interface {
-	registerKingpin(ka *kingpin.Application)
+	RegisterKingpin(ka *kingpin.Application)
 }
 
 type configBuilder func() Config
@@ -181,7 +181,7 @@ func GenerateConfigs(ka *kingpin.Application) map[string]Config {
 	cm := make(map[string]Config, len(configBuilders))
 	for k, v := range configBuilders {
 		c := v()
-		c.registerKingpin(ka)
+		c.RegisterKingpin(ka)
 		cm[k] = c
 	}
 	return cm

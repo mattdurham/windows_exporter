@@ -15,22 +15,22 @@ import (
 	"github.com/prometheus/common/log"
 )
 
-type iisConfig struct {
-	siteWhiteList string
-	siteBlackList string
-	appWhiteList  string
-	appBlackList  string
+type IisConfig struct {
+	SiteWhiteList string
+	SiteBlackList string
+	AppWhiteList  string
+	AppBlackList  string
 }
 
 func init() {
-	registerCollectorWithConfig("iis", NewIISCollector, func() Config { return &iisConfig{} })
+	registerCollectorWithConfig("iis", NewIISCollector, func() Config { return &IisConfig{} })
 }
 
-func (c *iisConfig) registerKingpin(ka *kingpin.Application) {
-	ka.Flag("collector.iis.site-whitelist", "Regexp of sites to whitelist. Site name must both match whitelist and not match blacklist to be included.").Default(".+").StringVar(&c.siteWhiteList)
-	ka.Flag("collector.iis.site-blacklist", "Regexp of sites to blacklist. Site name must both match whitelist and not match blacklist to be included.").StringVar(&c.siteBlackList)
-	ka.Flag("collector.iis.app-whitelist", "Regexp of apps to whitelist. App name must both match whitelist and not match blacklist to be included.").Default(".+").StringVar(&c.appWhiteList)
-	ka.Flag("collector.iis.app-blacklist", "Regexp of apps to blacklist. App name must both match whitelist and not match blacklist to be included.").StringVar(&c.appBlackList)
+func (c *IisConfig) RegisterKingpin(ka *kingpin.Application) {
+	ka.Flag("collector.iis.site-whitelist", "Regexp of sites to whitelist. Site name must both match whitelist and not match blacklist to be included.").Default(".+").StringVar(&c.SiteWhiteList)
+	ka.Flag("collector.iis.site-blacklist", "Regexp of sites to blacklist. Site name must both match whitelist and not match blacklist to be included.").StringVar(&c.SiteBlackList)
+	ka.Flag("collector.iis.app-whitelist", "Regexp of apps to whitelist. App name must both match whitelist and not match blacklist to be included.").Default(".+").StringVar(&c.AppWhiteList)
+	ka.Flag("collector.iis.app-blacklist", "Regexp of apps to blacklist. App name must both match whitelist and not match blacklist to be included.").StringVar(&c.AppBlackList)
 
 }
 
@@ -812,12 +812,12 @@ func NewIISCollector(c Config) (Collector, error) {
 			nil,
 		),
 	}
-	ic := c.(*iisConfig)
-	buildIIS.siteWhitelistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", ic.siteWhiteList))
-	buildIIS.siteBlacklistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", ic.siteBlackList))
+	ic := c.(*IisConfig)
+	buildIIS.siteWhitelistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", ic.SiteWhiteList))
+	buildIIS.siteBlacklistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", ic.SiteBlackList))
 
-	buildIIS.appWhitelistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", ic.appWhiteList))
-	buildIIS.appBlacklistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", ic.appBlackList))
+	buildIIS.appWhitelistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", ic.AppWhiteList))
+	buildIIS.appBlacklistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", ic.AppBlackList))
 	buildIIS.iis_version = getIISVersion()
 
 	return buildIIS, nil
