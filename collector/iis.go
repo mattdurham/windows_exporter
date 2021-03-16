@@ -16,10 +16,10 @@ import (
 )
 
 type iisConfig struct {
-	siteWhiteList string `name:"collector.iis.site-whitelist" description:"Regexp of sites to whitelist. Site name must both match whitelist and not match blacklist to be included." default:".+"`
-	siteBlackList string `name:"collector.iis.site-blacklist" description:"Regexp of sites to blacklist. Site name must both match whitelist and not match blacklist to be included."`
-	appWhiteList  string `name:"collector.iis.app-whitelist"  description:"Regexp of apps to whitelist. App name must both match whitelist and not match blacklist to be included." default:".+"`
-	appBlackList  string `name:"collector.iis.app-blacklist"  description:""`
+	siteWhiteList string
+	siteBlackList string
+	appWhiteList  string
+	appBlackList  string
 }
 
 func init() {
