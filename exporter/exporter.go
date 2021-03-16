@@ -3,6 +3,14 @@ package exporter
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"os"
+	"sort"
+	"strconv"
+	"strings"
+	"sync"
+	"time"
+
 	"github.com/StackExchange/wmi"
 	"github.com/prometheus-community/windows_exporter/collector"
 	"github.com/prometheus-community/windows_exporter/config"
@@ -13,13 +21,6 @@ import (
 	"github.com/prometheus/common/version"
 	"golang.org/x/sys/windows/svc"
 	"gopkg.in/alecthomas/kingpin.v2"
-	"net/http"
-	"os"
-	"sort"
-	"strconv"
-	"strings"
-	"sync"
-	"time"
 )
 
 type WindowsCollector struct {
@@ -225,8 +226,9 @@ func loadCollectors(list string, config map[string]collector.Config) (map[string
 	collectors := map[string]collector.Collector{}
 	enabled := expandEnabledCollectors(list)
 	for _, name := range enabled {
-		if cc, exists := config[name]; exists {
-			c, err := collector.BuildForConfig(name, cc)
+		// TODO this could be cleaned up if we decide to go this route
+		if _, exists := config[name]; exists {
+			c, err := collector.BuildForConfig(name)
 			if err != nil {
 				return nil, err
 			}
