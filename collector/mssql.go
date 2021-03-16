@@ -18,7 +18,7 @@ import (
 
 var (
 	mssqlEnabledCollectors = kingpin.Flag(
-		"collectors.mssql.classes-Enabled",
+		"collectors.mssql.classes-enabled",
 		"Comma-separated list of mssql WMI classes to use.").
 		Default(mssqlAvailableClassCollectors()).String()
 
