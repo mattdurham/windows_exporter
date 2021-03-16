@@ -6,6 +6,7 @@ import (
 	"github.com/StackExchange/wmi"
 	"github.com/prometheus-community/windows_exporter/collector"
 	"github.com/prometheus-community/windows_exporter/config"
+	config_resolver "github.com/prometheus-community/windows_exporter/config"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/common/log"
@@ -248,21 +249,33 @@ func initWbem() {
 }
 
 // Used to instantiate a new collector for use in a library
-func NewWindowsCollector(enabledCollectors string, config map[string]collector.Config) *WindowsCollector {
+func NewWindowsCollector(enabledCollectors string, config string) (*WindowsCollector, error) {
 	if enabledCollectors == "" {
 		enabledCollectors = defaultCollectors
 	}
 	initWbem()
-	collectors, err := loadCollectors(enabledCollectors, config)
+	kingpinApp := kingpin.New("windows_exporter", "")
+	configMap := collector.GenerateConfigs(kingpinApp)
+	resolver, err := config_resolver.NewResolverFromString(config)
+	if err != nil {
+		return nil, err
+	}
+	var placeholder []string
+	if err := resolver.Bind(kingpinApp, placeholder); err != nil {
+		return nil, err
+	}
+	// We can treat loading from config as the same as kingpin
+	kingpinApp.Parse(placeholder)
+	collectors, err := loadCollectors(enabledCollectors, configMap)
 	if err != nil {
 		log.Fatalf("Couldn't load collectors: %s", err)
 	}
+
 	log.Infof("Enabled collectors: %v", strings.Join(keys(collectors), ", "))
 	return &WindowsCollector{
 		Collectors:        collectors,
 		maxScrapeDuration: time.Duration(10 * float64(time.Second)),
-	}
-
+	}, nil
 }
 
 func StartExecutable() {
@@ -298,15 +311,14 @@ func StartExecutable() {
 			"Seconds to subtract from the timeout allowed by the client. Tune to allow for overhead or high loads.",
 		).Default("0.5").Float64()
 	)
-	configMap := collector.GenerateConfigsWithKingpin(kingpinApp)
+	// We can treat loading from config as the same as kingpin
+	configMap := collector.GenerateConfigs(kingpinApp)
 	log.AddFlags(kingpin.CommandLine)
 	kingpinApp.Version(version.Print("windows_exporter"))
 	kingpinApp.HelpFlag.Short('h')
 
 	// Load values from configuration file(s). Executable flags must first be parsed, in orderF
 	// to load the specified file(s).
-	kingpinApp.Parse(os.Args[1:])
-
 	if *configFile != "" {
 		resolver, err := config.NewResolver(*configFile)
 		if err != nil {
@@ -320,6 +332,7 @@ func StartExecutable() {
 		kingpinApp.Parse(os.Args[1:])
 	}
 
+	kingpinApp.Parse(os.Args[1:])
 	if *printCollectors {
 		collectors := collector.Available()
 		collectorNames := make(sort.StringSlice, 0, len(collectors))

@@ -8,11 +8,11 @@ import (
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
-var dfsrEnabledCollectors = kingpin.Flag("collectors.dfsr.sources-enabled", "Comma-seperated list of DFSR Perflib sources to use.").Default("connection,folder,volume").String()
+var dfsrEnabledCollectors = kingpin.Flag("collectors.dfsr.sources-Enabled", "Comma-seperated List of DFSR Perflib sources to use.").Default("connection,folder,volume").String()
 
 func init() {
 	log.Info("dfsr collector is in an experimental state! Metrics for this collector have not been tested.")
-	// Perflib sources are dynamic, depending on the enabled child collectors
+	// Perflib sources are dynamic, depending on the Enabled child collectors
 	var perflibDependencies []string
 	for _, source := range expandEnabledChildCollectors(*dfsrEnabledCollectors) {
 		perflibDependencies = append(perflibDependencies, dfsrGetPerfObjectName(source))
@@ -418,7 +418,7 @@ func NewDFSRCollector() (Collector, error) {
 	return &dfsrCollector, nil
 }
 
-// Maps enabled child collectors names to their relevant collection function,
+// Maps Enabled child collectors names to their relevant collection function,
 // for use in DFSRCollector.Collect()
 func (c *DFSRCollector) getDFSRChildCollectors(enabledCollectors []string) []dfsrCollectorFunc {
 	var dfsrCollectors []dfsrCollectorFunc

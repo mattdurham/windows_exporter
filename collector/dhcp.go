@@ -39,7 +39,7 @@ type DhcpCollector struct {
 	FailoverBndupdDropped                            *prometheus.Desc
 }
 
-func NewDhcpCollector(_ Config) (Collector, error) {
+func NewDhcpCollector(_ interface{}) (Collector, error) {
 	const subsystem = "dhcp"
 
 	return &DhcpCollector{
@@ -129,13 +129,13 @@ func NewDhcpCollector(_ Config) (Collector, error) {
 		),
 		DeniedDueToMatch: prometheus.NewDesc(
 			prometheus.BuildFQName(Namespace, subsystem, "denied_due_to_match_total"),
-			"Total number of DHCP requests denied, based on matches from the Deny list (DeniedDueToMatch)",
+			"Total number of DHCP requests denied, based on matches from the Deny List (DeniedDueToMatch)",
 			nil,
 			nil,
 		),
 		DeniedDueToNonMatch: prometheus.NewDesc(
 			prometheus.BuildFQName(Namespace, subsystem, "denied_due_to_nonmatch_total"),
-			"Total number of DHCP requests denied, based on non-matches from the Allow list (DeniedDueToNonMatch)",
+			"Total number of DHCP requests denied, based on non-matches from the Allow List (DeniedDueToNonMatch)",
 			nil,
 			nil,
 		),

@@ -18,13 +18,13 @@ import (
 
 var (
 	mssqlEnabledCollectors = kingpin.Flag(
-		"collectors.mssql.classes-enabled",
-		"Comma-separated list of mssql WMI classes to use.").
+		"collectors.mssql.classes-Enabled",
+		"Comma-separated List of mssql WMI classes to use.").
 		Default(mssqlAvailableClassCollectors()).String()
 
 	mssqlPrintCollectors = kingpin.Flag(
 		"collectors.mssql.class-print",
-		"If true, print available mssql WMI classes and exit.  Only displays if the mssql collector is enabled.",
+		"If true, print available mssql WMI classes and exit.  Only displays if the mssql collector is Enabled.",
 	).Bool()
 )
 
@@ -2342,7 +2342,7 @@ type mssqlBufferManager struct {
 	ExtensionpagereadsPersec      float64 `perflib:"Extension page reads/sec"`
 	Extensionpageunreferencedtime float64 `perflib:"Extension page unreferenced time"`
 	ExtensionpagewritesPersec     float64 `perflib:"Extension page writes/sec"`
-	FreeliststallsPersec          float64 `perflib:"Free list stalls/sec"`
+	FreeliststallsPersec          float64 `perflib:"Free List stalls/sec"`
 	IntegralControllerSlope       float64 `perflib:"Integral Controller Slope"`
 	LazywritesPersec              float64 `perflib:"Lazy writes/sec"`
 	Pagelifeexpectancy            float64 `perflib:"Page life expectancy"`

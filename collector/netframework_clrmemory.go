@@ -32,7 +32,7 @@ type NETFramework_NETCLRMemoryCollector struct {
 }
 
 // NewNETFramework_NETCLRMemoryCollector ...
-func NewNETFramework_NETCLRMemoryCollector(_ Config) (Collector, error) {
+func NewNETFramework_NETCLRMemoryCollector(_ interface{}) (Collector, error) {
 	const subsystem = "netframework_clrmemory"
 	return &NETFramework_NETCLRMemoryCollector{
 		AllocatedBytes: prometheus.NewDesc(

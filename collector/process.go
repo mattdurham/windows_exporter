@@ -89,7 +89,7 @@ func newProcessCollector() (Collector, error) {
 		),
 		PageFaultsTotal: prometheus.NewDesc(
 			prometheus.BuildFQName(Namespace, subsystem, "page_faults_total"),
-			"Page faults by the threads executing in this process. A page fault occurs when a thread refers to a virtual memory page that is not in its working set in main memory. This can cause the page not to be fetched from disk if it is on the standby list and hence already in main memory, or if it is in use by another process with which the page is shared.",
+			"Page faults by the threads executing in this process. A page fault occurs when a thread refers to a virtual memory page that is not in its working set in main memory. This can cause the page not to be fetched from disk if it is on the standby List and hence already in main memory, or if it is in use by another process with which the page is shared.",
 			[]string{"process", "process_id", "creating_process_id"},
 			nil,
 		),

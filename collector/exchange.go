@@ -6,42 +6,26 @@ import (
 	"fmt"
 	"gopkg.in/alecthomas/kingpin.v2"
 	"os"
-	"strconv"
 	"strings"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
 )
 
-type ExchangeConfig struct {
-	list    bool
-	enabled string
+type exchangeConfig struct {
+	list    *bool
+	enabled *string
 }
 
-const list = "collectors.exchange.list"
-const enabled = "collectors.exchange.enabled"
-
-func (ec *ExchangeConfig) LoadConfigFromKingPin(ka *kingpin.Application) {
-	ka.Flag(list, "List the collectors along with their perflib object name/ids").BoolVar(&ec.list)
-	ka.Flag(enabled, "Comma-separated list of collectors to use. Defaults to all, if not specified.").StringVar(&ec.enabled)
-}
-
-func (ec *ExchangeConfig) LoadConfigFromMap(m map[string]string) {
-	if v, err := strconv.ParseBool(m[list]); err != nil {
-		ec.list = v
-	}
-	ec.enabled = m[enabled]
-}
-
-func newExchangeConfig() Config {
-	return &ExchangeConfig{
-		list:    false,
-		enabled: "",
-	}
+func (e *exchangeConfig) RegisterKingpin(ka *kingpin.Application) {
+	ka.Flag("collectors.exchange.list", "List the collectors along with their perflib object name/ids").BoolVar(e.list)
+	ka.Flag("collectors.exchange.enabled", "Comma-separated List of collectors to use. Defaults to all, if not specified.").StringVar(e.enabled)
 }
 
 func init() {
-	registerCollectorWithConfig("exchange", newExchangeCollector, newExchangeConfig,
+	registerCollectorWithConfig("exchange", newExchangeCollector, func() Config {
+		return &exchangeConfig{}
+	},
 		"MSExchange ADAccess Processes",
 		"MSExchangeTransport Queues",
 		"MSExchange HttpProxy",
@@ -99,7 +83,7 @@ type exchangeCollector struct {
 	ArgExchangeCollectorsEnabled string
 }
 
-func (c *exchangeCollector) ApplyConfig(config *ExchangeConfig) {
+func (c *exchangeCollector) ApplyConfig(config *exchangeConfig) {
 	collectorDesc := map[string]string{
 		"ADAccessProcesses":   "[19108] MSExchange ADAccess Processes",
 		"TransportQueues":     "[20524] MSExchangeTransport Queues",
@@ -112,7 +96,7 @@ func (c *exchangeCollector) ApplyConfig(config *ExchangeConfig) {
 		"RpcClientAccess":     "[29336] MSExchange RpcClientAccess",
 	}
 
-	if config.list {
+	if *config.list {
 		fmt.Printf("%-32s %-32s\n", "Collector Name", "[PerfID] Perflib Object")
 		for _, cname := range exchangeAllCollectorNames {
 			fmt.Printf("%-32s %-32s\n", cname, collectorDesc[cname])
@@ -120,7 +104,7 @@ func (c *exchangeCollector) ApplyConfig(config *ExchangeConfig) {
 		os.Exit(0)
 	}
 
-	if config.enabled == "" {
+	if *config.enabled == "" {
 		for _, collectorName := range exchangeAllCollectorNames {
 			c.enabledCollectors = append(c.enabledCollectors, collectorName)
 		}
@@ -151,8 +135,8 @@ var (
 )
 
 // newExchangeCollector returns a new Collector
-func newExchangeCollector(config Config) (Collector, error) {
-	ecConfig := config.(*ExchangeConfig)
+func newExchangeCollector(config interface{}) (Collector, error) {
+	ecConfig := config.(*exchangeConfig)
 	// desc creates a new prometheus description
 	desc := func(metricName string, description string, labels ...string) *prometheus.Desc {
 		return prometheus.NewDesc(

@@ -22,7 +22,7 @@ type CSCollector struct {
 }
 
 // NewCSCollector ...
-func NewCSCollector(_ Config) (Collector, error) {
+func NewCSCollector(_ interface{}) (Collector, error) {
 	const subsystem = "cs"
 
 	return &CSCollector{

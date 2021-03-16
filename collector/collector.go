@@ -2,6 +2,7 @@ package collector
 
 import (
 	"fmt"
+	"gopkg.in/alecthomas/kingpin.v2"
 	"sort"
 	"strconv"
 	"strings"
@@ -50,11 +51,17 @@ func getWindowsVersion() float64 {
 	return currentv_flt
 }
 
-type collectorBuilder func(c Config) (Collector, error)
+type Config interface {
+	RegisterKingpin(ka *kingpin.Application)
+}
+
+type configBuilder func() Config
+type collectorBuilder func(c interface{}) (Collector, error)
 
 var (
 	builders                = make(map[string]collectorBuilder)
 	perfCounterDependencies = make(map[string]string)
+	configMap               = make(map[string]configBuilder)
 )
 
 func addPerfCounterDependencies(name string, perfCounterNames []string) {
@@ -70,9 +77,9 @@ func registerCollector(name string, builder collectorBuilder, perfCounterNames .
 	addPerfCounterDependencies(name, perfCounterNames)
 }
 
-func registerCollectorWithConfig(name string, builder collectorBuilder, createConfig func() Config, perfCounterNames ...string) {
+func registerCollectorWithConfig(name string, builder collectorBuilder, config configBuilder, perfCounterNames ...string) {
 	builders[name] = builder
-	ConfigMap[name] = createConfig
+	configMap[name] = config
 	addPerfCounterDependencies(name, perfCounterNames)
 }
 
@@ -84,25 +91,7 @@ func Available() []string {
 	return cs
 }
 
-func BuildForLibrary(collector string, settings map[string]string) (Collector, error) {
-	builder, exists := builders[collector]
-	if !exists {
-		return nil, fmt.Errorf("Unknown collector %q", collector)
-	}
-	configBuilder, exists := ConfigMap[collector]
-	var config Config
-	if exists {
-		config = configBuilder()
-		config.LoadConfigFromMap(settings)
-	}
-	c, err := builder(config)
-	if err != nil {
-		return nil, err
-	}
-	return c, nil
-}
-
-func Build(collector string, config Config) (Collector, error) {
+func Build(collector string, config interface{}) (Collector, error) {
 	builder, exists := builders[collector]
 	if !exists {
 		return nil, fmt.Errorf("Unknown collector %q", collector)
@@ -160,7 +149,7 @@ func find(slice []string, val string) bool {
 	return false
 }
 
-// Used by more complex collectors where user input specifies enabled child collectors.
+// Used by more complex collectors where user input specifies Enabled child collectors.
 // Splits provided child collectors and deduplicate.
 func expandEnabledChildCollectors(enabled string) []string {
 	separated := strings.Split(enabled, ",")
@@ -177,4 +166,14 @@ func expandEnabledChildCollectors(enabled string) []string {
 	// Ensure result is ordered, to prevent test failure
 	sort.Strings(result)
 	return result
+}
+
+func GenerateConfigs(ka *kingpin.Application) map[string]Config {
+	cm := make(map[string]Config, len(configMap))
+	for k, v := range configMap {
+		c := v()
+		c.RegisterKingpin(ka)
+		cm[k] = c
+	}
+	return cm
 }
