@@ -23,7 +23,7 @@ type NETFramework_NETCLRRemotingCollector struct {
 }
 
 // NewNETFramework_NETCLRRemotingCollector ...
-func NewNETFramework_NETCLRRemotingCollector(_ interface{}) (Collector, error) {
+func NewNETFramework_NETCLRRemotingCollector(_ Config) (Collector, error) {
 	const subsystem = "netframework_clrremoting"
 	return &NETFramework_NETCLRRemotingCollector{
 		Channels: prometheus.NewDesc(

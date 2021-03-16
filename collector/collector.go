@@ -56,7 +56,7 @@ type Config interface {
 }
 
 type configBuilder func() Config
-type collectorBuilder func(c interface{}) (Collector, error)
+type collectorBuilder func(c Config) (Collector, error)
 
 var (
 	builders                = make(map[string]collectorBuilder)
@@ -91,7 +91,7 @@ func Available() []string {
 	return cs
 }
 
-func Build(collector string, config interface{}) (Collector, error) {
+func Build(collector string, config Config) (Collector, error) {
 	builder, exists := builders[collector]
 	if !exists {
 		return nil, fmt.Errorf("Unknown collector %q", collector)

@@ -200,7 +200,7 @@ type IISCollector struct {
 }
 
 // NewIISCollector ...
-func NewIISCollector(c interface{}) (Collector, error) {
+func NewIISCollector(c Config) (Collector, error) {
 	const subsystem = "iis"
 
 	buildIIS := &IISCollector{

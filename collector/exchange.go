@@ -135,7 +135,7 @@ var (
 )
 
 // newExchangeCollector returns a new Collector
-func newExchangeCollector(config interface{}) (Collector, error) {
+func newExchangeCollector(config Config) (Collector, error) {
 	ecConfig := config.(*exchangeConfig)
 	// desc creates a new prometheus description
 	desc := func(metricName string, description string, labels ...string) *prometheus.Desc {

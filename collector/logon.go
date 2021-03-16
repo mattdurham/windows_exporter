@@ -20,7 +20,7 @@ type LogonCollector struct {
 }
 
 // NewLogonCollector ...
-func NewLogonCollector(_ interface{}) (Collector, error) {
+func NewLogonCollector(_ Config) (Collector, error) {
 	const subsystem = "logon"
 
 	return &LogonCollector{

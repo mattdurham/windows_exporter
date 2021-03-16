@@ -26,7 +26,7 @@ type NETFramework_NETCLRLoadingCollector struct {
 }
 
 // NewNETFramework_NETCLRLoadingCollector ...
-func NewNETFramework_NETCLRLoadingCollector(_ interface{}) (Collector, error) {
+func NewNETFramework_NETCLRLoadingCollector(_ Config) (Collector, error) {
 	const subsystem = "netframework_clrloading"
 	return &NETFramework_NETCLRLoadingCollector{
 		BytesinLoaderHeap: prometheus.NewDesc(

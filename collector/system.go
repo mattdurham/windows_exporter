@@ -22,7 +22,7 @@ type SystemCollector struct {
 }
 
 // NewSystemCollector ...
-func NewSystemCollector(_ interface{}) (Collector, error) {
+func NewSystemCollector(_ Config) (Collector, error) {
 	const subsystem = "system"
 
 	return &SystemCollector{

@@ -20,7 +20,7 @@ type NETFramework_NETCLRInteropCollector struct {
 }
 
 // NewNETFramework_NETCLRInteropCollector ...
-func NewNETFramework_NETCLRInteropCollector(_ interface{}) (Collector, error) {
+func NewNETFramework_NETCLRInteropCollector(_ Config) (Collector, error) {
 	const subsystem = "netframework_clrinterop"
 	return &NETFramework_NETCLRInteropCollector{
 		NumberofCCWs: prometheus.NewDesc(

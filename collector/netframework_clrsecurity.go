@@ -21,7 +21,7 @@ type NETFramework_NETCLRSecurityCollector struct {
 }
 
 // NewNETFramework_NETCLRSecurityCollector ...
-func NewNETFramework_NETCLRSecurityCollector(_ interface{}) (Collector, error) {
+func NewNETFramework_NETCLRSecurityCollector(_ Config) (Collector, error) {
 	const subsystem = "netframework_clrsecurity"
 	return &NETFramework_NETCLRSecurityCollector{
 		NumberLinkTimeChecks: prometheus.NewDesc(
