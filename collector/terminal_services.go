@@ -88,7 +88,7 @@ func NewTerminalServicesCollector() (Collector, error) {
 		),
 		PageFaultsPersec: prometheus.NewDesc(
 			prometheus.BuildFQName(Namespace, subsystem, "page_fault_total"),
-			"Rate at which page faults occur in the threads executing in this process. A page fault occurs when a thread refers to a virtual memory page that is not in its working set in main memory. The page may not be retrieved from disk if it is on the standby List and therefore already in main memory. The page also may not be retrieved if it is in use by another process which shares the page.",
+			"Rate at which page faults occur in the threads executing in this process. A page fault occurs when a thread refers to a virtual memory page that is not in its working set in main memory. The page may not be retrieved from disk if it is on the standby list and therefore already in main memory. The page also may not be retrieved if it is in use by another process which shares the page.",
 			[]string{"session_name"},
 			nil,
 		),
