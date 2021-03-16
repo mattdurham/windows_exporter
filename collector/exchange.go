@@ -23,7 +23,7 @@ func (e *ExchangeConfig) RegisterKingpin(ka *kingpin.Application) {
 }
 
 func init() {
-	registerCollectorWithConfig("exchange", newExchangeCollector, func() Config {
+	registerCollectorWithConfig("exchange", func() Config {
 		return &ExchangeConfig{}
 	},
 		"MSExchange ADAccess Processes",
@@ -128,9 +128,9 @@ var (
 )
 
 // newExchangeCollector returns a new Collector
-func newExchangeCollector(config Config) (Collector, error) {
-	ecConfig := config.(*ExchangeConfig)
-	if ecConfig.List {
+func (config *ExchangeConfig) NewCollector() (Collector, error) {
+
+	if config.List {
 		fmt.Printf("%-32s %-32s\n", "Collector Name", "[PerfID] Perflib Object")
 		for _, cname := range exchangeAllCollectorNames {
 			fmt.Printf("%-32s %-32s\n", cname, collectorDesc[cname])
@@ -188,7 +188,7 @@ func newExchangeCollector(config Config) (Collector, error) {
 
 		enabledCollectors: make([]string, 0, len(exchangeAllCollectorNames)),
 	}
-	c.ApplyConfig(ecConfig)
+	c.ApplyConfig(config)
 	return &c, nil
 }
 

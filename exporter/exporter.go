@@ -225,8 +225,9 @@ func loadCollectors(list string, config map[string]collector.Config) (map[string
 	collectors := map[string]collector.Collector{}
 	enabled := expandEnabledCollectors(list)
 	for _, name := range enabled {
-		if cc, exists := config[name]; exists {
-			c, err := collector.BuildForConfig(name, cc)
+		// TODO this could be cleaned up if we decide to go this route
+		if _, exists := config[name]; exists {
+			c, err := collector.BuildForConfig(name)
 			if err != nil {
 				return nil, err
 			}

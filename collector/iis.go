@@ -23,7 +23,7 @@ type IisConfig struct {
 }
 
 func init() {
-	registerCollectorWithConfig("iis", NewIISCollector, func() Config { return &IisConfig{} })
+	registerCollectorWithConfig("iis", func() Config { return &IisConfig{} })
 }
 
 func (c *IisConfig) RegisterKingpin(ka *kingpin.Application) {
@@ -200,7 +200,7 @@ type IISCollector struct {
 }
 
 // NewIISCollector ...
-func NewIISCollector(c Config) (Collector, error) {
+func (ic *IisConfig) NewCollector() (Collector, error) {
 	const subsystem = "iis"
 
 	buildIIS := &IISCollector{
@@ -812,7 +812,6 @@ func NewIISCollector(c Config) (Collector, error) {
 			nil,
 		),
 	}
-	ic := c.(*IisConfig)
 	buildIIS.siteWhitelistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", ic.SiteWhiteList))
 	buildIIS.siteBlacklistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", ic.SiteBlackList))
 
