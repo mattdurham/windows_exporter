@@ -227,8 +227,8 @@ func loadCollectors(list string, config map[string]collector.Config) (map[string
 	enabled := expandEnabledCollectors(list)
 	for _, name := range enabled {
 		// TODO this could be cleaned up if we decide to go this route
-		if _, exists := config[name]; exists {
-			c, err := collector.BuildForConfig(name)
+		if cb, exists := config[name]; exists {
+			c, err := cb.Build()
 			if err != nil {
 				return nil, err
 			}

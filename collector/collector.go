@@ -103,14 +103,6 @@ func Build(collector string) (Collector, error) {
 	return builder()
 }
 
-func BuildForConfig(collector string) (Collector, error) {
-	builder, exists := configBuilders[collector]
-	if !exists {
-		return nil, fmt.Errorf("Unknown collector %q", collector)
-	}
-	return builder().Build()
-}
-
 func getPerfQuery(collectors []string) string {
 	parts := make([]string, 0, len(collectors))
 	for _, c := range collectors {
