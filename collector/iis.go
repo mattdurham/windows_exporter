@@ -24,7 +24,7 @@ type IISConfig struct {
 }
 
 func init() {
-	registerCollectorWithConfig("iis", NewIISCollector, func() Config { return &IISConfig{} })
+	registerCollectorWithConfig("iis", func() Config { return &IISConfig{} })
 }
 
 func (c *IISConfig) RegisterKingpin(ka *kingpin.Application) {
