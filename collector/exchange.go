@@ -96,23 +96,6 @@ var collectorDesc = map[string]string{
 	"RpcClientAccess":     "[29336] MSExchange RpcClientAccess",
 }
 
-func (c *exchangeCollector) ApplyConfig(config *ExchangeConfig) {
-
-	if config.Enabled == "" {
-		for _, collectorName := range exchangeAllCollectorNames {
-			c.enabledCollectors = append(c.enabledCollectors, collectorName)
-		}
-	} else {
-		for _, collectorName := range strings.Split(c.ArgExchangeCollectorsEnabled, ",") {
-			if find(exchangeAllCollectorNames, collectorName) {
-				c.enabledCollectors = append(c.enabledCollectors, collectorName)
-			} else {
-				fmt.Errorf("Unknown exchange collector: %s", collectorName)
-			}
-		}
-	}
-}
-
 var (
 	// All available collector functions
 	exchangeAllCollectorNames = []string{
@@ -188,7 +171,19 @@ func newExchangeCollector(config *ExchangeConfig) (Collector, error) {
 
 		enabledCollectors: make([]string, 0, len(exchangeAllCollectorNames)),
 	}
-	c.ApplyConfig(config)
+	if config.Enabled == "" {
+		for _, collectorName := range exchangeAllCollectorNames {
+			c.enabledCollectors = append(c.enabledCollectors, collectorName)
+		}
+	} else {
+		for _, collectorName := range strings.Split(c.ArgExchangeCollectorsEnabled, ",") {
+			if find(exchangeAllCollectorNames, collectorName) {
+				c.enabledCollectors = append(c.enabledCollectors, collectorName)
+			} else {
+				fmt.Errorf("Unknown exchange collector: %s", collectorName)
+			}
+		}
+	}
 	return &c, nil
 }
 

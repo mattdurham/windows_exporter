@@ -16,15 +16,15 @@ import (
 	"github.com/prometheus/common/log"
 )
 
+func init() {
+	registerCollectorWithConfig("iis", func() Config { return &IISConfig{} })
+}
+
 type IISConfig struct {
 	SiteWhiteList string
 	SiteBlackList string
 	AppWhiteList  string
 	AppBlackList  string
-}
-
-func init() {
-	registerCollectorWithConfig("iis", func() Config { return &IISConfig{} })
 }
 
 func (c *IISConfig) RegisterKingpin(ka *kingpin.Application) {

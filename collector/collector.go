@@ -113,6 +113,7 @@ func getPerfQuery(collectors []string) string {
 	return strings.Join(parts, " ")
 }
 
+// Collector is the interface a collector has to implement.
 type Collector interface {
 	// Get new metrics and expose them via prometheus registry.
 	Collect(ctx *ScrapeContext, ch chan<- prometheus.Metric) (err error)
