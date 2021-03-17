@@ -5,8 +5,9 @@ package collector
 import (
 	"errors"
 	"fmt"
-	"gopkg.in/alecthomas/kingpin.v2"
 	"regexp"
+
+	"gopkg.in/alecthomas/kingpin.v2"
 
 	"golang.org/x/sys/windows/registry"
 
@@ -15,7 +16,7 @@ import (
 	"github.com/prometheus/common/log"
 )
 
-type IisConfig struct {
+type IISConfig struct {
 	SiteWhiteList string
 	SiteBlackList string
 	AppWhiteList  string
@@ -23,16 +24,17 @@ type IisConfig struct {
 }
 
 func init() {
-	registerCollectorWithConfig("iis", NewIISCollector, func() Config { return &IisConfig{} })
+	registerCollectorWithConfig("iis", NewIISCollector, func() Config { return &IISConfig{} })
 }
 
-func (c *IisConfig) RegisterKingpin(ka *kingpin.Application) {
+func (c *IISConfig) RegisterKingpin(ka *kingpin.Application) {
 	ka.Flag("collector.iis.site-whitelist", "Regexp of sites to whitelist. Site name must both match whitelist and not match blacklist to be included.").Default(".+").StringVar(&c.SiteWhiteList)
 	ka.Flag("collector.iis.site-blacklist", "Regexp of sites to blacklist. Site name must both match whitelist and not match blacklist to be included.").StringVar(&c.SiteBlackList)
 	ka.Flag("collector.iis.app-whitelist", "Regexp of apps to whitelist. App name must both match whitelist and not match blacklist to be included.").Default(".+").StringVar(&c.AppWhiteList)
 	ka.Flag("collector.iis.app-blacklist", "Regexp of apps to blacklist. App name must both match whitelist and not match blacklist to be included.").StringVar(&c.AppBlackList)
-
 }
+
+func (c *IISConfig) Build() (Collector, error) { return NewIISCollector(c) }
 
 type simple_version struct {
 	major uint64
@@ -200,7 +202,7 @@ type IISCollector struct {
 }
 
 // NewIISCollector ...
-func NewIISCollector(c Config) (Collector, error) {
+func NewIISCollector(c *IISConfig) (Collector, error) {
 	const subsystem = "iis"
 
 	buildIIS := &IISCollector{
@@ -812,12 +814,11 @@ func NewIISCollector(c Config) (Collector, error) {
 			nil,
 		),
 	}
-	ic := c.(*IisConfig)
-	buildIIS.siteWhitelistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", ic.SiteWhiteList))
-	buildIIS.siteBlacklistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", ic.SiteBlackList))
+	buildIIS.siteWhitelistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", c.SiteWhiteList))
+	buildIIS.siteBlacklistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", c.SiteBlackList))
 
-	buildIIS.appWhitelistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", ic.AppWhiteList))
-	buildIIS.appBlacklistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", ic.AppBlackList))
+	buildIIS.appWhitelistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", c.AppWhiteList))
+	buildIIS.appBlacklistPattern = regexp.MustCompile(fmt.Sprintf("^(?:%s)$", c.AppBlackList))
 	buildIIS.iis_version = getIISVersion()
 
 	return buildIIS, nil

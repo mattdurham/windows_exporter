@@ -4,9 +4,10 @@ package collector
 
 import (
 	"fmt"
-	"gopkg.in/alecthomas/kingpin.v2"
 	"os"
 	"strings"
+
+	"gopkg.in/alecthomas/kingpin.v2"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
@@ -22,10 +23,10 @@ func (e *ExchangeConfig) RegisterKingpin(ka *kingpin.Application) {
 	ka.Flag("collectors.exchange.enabled", "Comma-separated List of collectors to use. Defaults to all, if not specified.").StringVar(&e.Enabled)
 }
 
+func (e *ExchangeConfig) Build() (Collector, error) { return newExchangeCollector(e) }
+
 func init() {
-	registerCollectorWithConfig("exchange", newExchangeCollector, func() Config {
-		return &ExchangeConfig{}
-	},
+	registerCollectorWithConfig("exchange", func() Config { return &ExchangeConfig{} },
 		"MSExchange ADAccess Processes",
 		"MSExchangeTransport Queues",
 		"MSExchange HttpProxy",
@@ -128,9 +129,8 @@ var (
 )
 
 // newExchangeCollector returns a new Collector
-func newExchangeCollector(config Config) (Collector, error) {
-	ecConfig := config.(*ExchangeConfig)
-	if ecConfig.List {
+func newExchangeCollector(config *ExchangeConfig) (Collector, error) {
+	if config.List {
 		fmt.Printf("%-32s %-32s\n", "Collector Name", "[PerfID] Perflib Object")
 		for _, cname := range exchangeAllCollectorNames {
 			fmt.Printf("%-32s %-32s\n", cname, collectorDesc[cname])
@@ -188,7 +188,7 @@ func newExchangeCollector(config Config) (Collector, error) {
 
 		enabledCollectors: make([]string, 0, len(exchangeAllCollectorNames)),
 	}
-	c.ApplyConfig(ecConfig)
+	c.ApplyConfig(config)
 	return &c, nil
 }
 

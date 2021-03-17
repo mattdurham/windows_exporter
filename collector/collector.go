@@ -2,10 +2,11 @@ package collector
 
 import (
 	"fmt"
-	"gopkg.in/alecthomas/kingpin.v2"
 	"sort"
 	"strconv"
 	"strings"
+
+	"gopkg.in/alecthomas/kingpin.v2"
 
 	"github.com/leoluk/perflib_exporter/perflib"
 	"github.com/prometheus/client_golang/prometheus"
@@ -53,15 +54,14 @@ func getWindowsVersion() float64 {
 
 type Config interface {
 	RegisterKingpin(ka *kingpin.Application)
+	Build() (Collector, error)
 }
 
 type configBuilder func() Config
 type collectorBuilder func() (Collector, error)
-type configurableCollectorBuilder func(c Config) (Collector, error)
 
 var (
 	builders                = make(map[string]collectorBuilder)
-	configBasedBuilders     = make(map[string]configurableCollectorBuilder)
 	perfCounterDependencies = make(map[string]string)
 	configBuilders          = make(map[string]configBuilder)
 )
@@ -71,8 +71,7 @@ func registerCollector(name string, builder collectorBuilder, perfCounterNames .
 	addPerfCounterDependencies(name, perfCounterNames)
 }
 
-func registerCollectorWithConfig(name string, builder configurableCollectorBuilder, config configBuilder, perfCounterNames ...string) {
-	configBasedBuilders[name] = builder
+func registerCollectorWithConfig(name string, config configBuilder, perfCounterNames ...string) {
 	configBuilders[name] = config
 	addPerfCounterDependencies(name, perfCounterNames)
 }
@@ -86,11 +85,11 @@ func addPerfCounterDependencies(name string, perfCounterNames []string) {
 }
 
 func Available() []string {
-	cs := make([]string, 0, len(builders)+len(configBasedBuilders))
+	cs := make([]string, 0, len(builders)+len(configBuilders))
 	for c := range builders {
 		cs = append(cs, c)
 	}
-	for c := range configBasedBuilders {
+	for c := range configBuilders {
 		cs = append(cs, c)
 	}
 	return cs
@@ -104,12 +103,12 @@ func Build(collector string) (Collector, error) {
 	return builder()
 }
 
-func BuildForConfig(collector string, config Config) (Collector, error) {
-	builder, exists := configBasedBuilders[collector]
+func BuildForConfig(collector string) (Collector, error) {
+	builder, exists := configBuilders[collector]
 	if !exists {
 		return nil, fmt.Errorf("Unknown collector %q", collector)
 	}
-	return builder(config)
+	return builder().Build()
 }
 
 func getPerfQuery(collectors []string) string {
