@@ -258,12 +258,15 @@ func initWbem() {
 }
 
 // Used to instantiate a new collector for use in a library
-func NewWindowsCollector(enabledCollectors string, config string) (*WindowsCollector, error) {
+func NewWindowsCollector(name string, enabledCollectors string, config string) (*WindowsCollector, error) {
 	if enabledCollectors == "" {
 		enabledCollectors = defaultCollectors
 	}
 	initWbem()
-	kingpinApp := kingpin.New("windows_exporter", "")
+	if name == "" {
+		name = "windows_exporter"
+	}
+	kingpinApp := kingpin.New(name, "")
 	configMap := collector.GenerateConfigs(kingpinApp)
 	resolver, err := config_resolver.NewResolverFromString(config)
 	if err != nil {
