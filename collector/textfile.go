@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// +build ignore
+// +build windows
 
 package collector
 
@@ -34,11 +34,6 @@ import (
 )
 
 var (
-	textFileDirectory = kingpin.Flag(
-		"collector.textfile.directory",
-		"Directory to read text files with metrics from.",
-	).Default("C:\\Program Files\\windows_exporter\\textfile_inputs").String()
-
 	mtimeDesc = prometheus.NewDesc(
 		prometheus.BuildFQName(Namespace, "textfile", "mtime_seconds"),
 		"Unixtime mtime of textfiles successfully read.",
@@ -54,14 +49,31 @@ type textFileCollector struct {
 }
 
 func init() {
-	registerCollector("textfile", NewTextFileCollector)
+	registerCollectorWithConfig("textfile", func() Config {
+		return &TextFileConfig{}
+	})
+}
+
+type TextFileConfig struct {
+	TextFileDirectory string
+}
+
+func (t *TextFileConfig) RegisterKingpin(ka *kingpin.Application) {
+	ka.Flag(
+		"collector.textfile.directory",
+		"Directory to read text files with metrics from.",
+	).Default("C:\\Program Files\\windows_exporter\\textfile_inputs").StringVar(&t.TextFileDirectory)
+}
+
+func (t *TextFileConfig) Build() (Collector, error) {
+	return NewTextFileCollector(t)
 }
 
 // NewTextFileCollector returns a new Collector exposing metrics read from files
 // in the given textfile directory.
-func NewTextFileCollector() (Collector, error) {
+func NewTextFileCollector(t *TextFileConfig) (Collector, error) {
 	return &textFileCollector{
-		path: *textFileDirectory,
+		path: t.TextFileDirectory,
 	}, nil
 }
 
